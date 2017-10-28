@@ -73,7 +73,7 @@ it('passes a query on to the next link', done => {
             foo
           }
         }
-      `)
+      `),
     );
     return Observable.of({ data: { bar: { foo: true } } });
   });
@@ -82,7 +82,7 @@ it('passes a query on to the next link', done => {
 
   execute(client.concat(nextLink), { query: mixedQuery }).subscribe(
     () => done(),
-    done.fail
+    done.fail,
   );
 });
 
@@ -110,7 +110,7 @@ it('runs resolvers for missing client queries with server data', done => {
     }
   `;
   const sample = new ApolloLink(() =>
-    Observable.of({ data: { bar: { baz: true } } })
+    Observable.of({ data: { bar: { baz: true } } }),
   );
   const client = withClientState({
     Query: {
@@ -139,7 +139,7 @@ it('runs resolvers for missing client queries with server data including fragmen
     }
   `;
   const sample = new ApolloLink(() =>
-    Observable.of({ data: { bar: { baz: true } } })
+    Observable.of({ data: { bar: { baz: true } } }),
   );
   const client = withClientState({
     Query: {

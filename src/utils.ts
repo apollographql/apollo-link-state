@@ -1,7 +1,5 @@
 import { DocumentNode, DirectiveNode } from 'graphql';
-import { Operation } from 'apollo-link';
 
-// XXX move to apollo-utilities and document
 import {
   // getDirectives,
   checkDocument,
@@ -14,8 +12,8 @@ const connectionRemoveConfig = {
 };
 
 const removed = new Map();
-export function removeDirectivesFromDocument(
-  query: DocumentNode
+export function removeClientSetsFromDocument(
+  query: DocumentNode,
 ): DocumentNode {
   // caching
   const cached = removed.get(query);
@@ -25,7 +23,7 @@ export function removeDirectivesFromDocument(
 
   const docClone = removeDirectivesFromDocument(
     [connectionRemoveConfig],
-    query
+    query,
   );
 
   // caching

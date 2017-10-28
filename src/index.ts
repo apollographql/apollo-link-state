@@ -3,7 +3,7 @@ import { ApolloLink, Observable, Operation, NextLink } from 'apollo-link';
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
 import graphql from 'graphql-anywhere';
 
-import { removeDirectivesFromDocument } from './utils';
+import { removeClientSetsFromDocument } from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -13,11 +13,11 @@ export const withClientState = resolvers => {
 
     if (!isClient) return forward(operation);
 
-    const server = removeDirectivesFromDocument(operation.query);
+    const server = removeClientSetsFromDocument(operation.query);
     const { query } = operation;
     const type =
       capitalizeFirstLetter(
-        (getMainDefinition(query) || ({} as any)).operation
+        (getMainDefinition(query) || ({} as any)).operation,
       ) || 'Query';
 
     return new Observable(observer => {
@@ -32,9 +32,9 @@ export const withClientState = resolvers => {
             if (fieldValue !== undefined) return fieldValue;
 
             // Look for the field in the custom resolver map
-            const resolver =
+            const resolve =
               resolvers[(rootValue as any).__typename || type][fieldName];
-            if (resolver) return resolver(fieldValue, args, context, info);
+            if (resolve) return resolve(fieldValue, args, context, info);
           };
 
           const mergedData = graphql(
@@ -42,7 +42,7 @@ export const withClientState = resolvers => {
             query,
             data,
             operation.getContext(),
-            operation.variables
+            operation.variables,
           );
 
           observer.next({ data: mergedData, errors });

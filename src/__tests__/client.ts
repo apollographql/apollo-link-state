@@ -82,7 +82,7 @@ describe('non cache usage', () => {
         client.query({ query }).then(({ data }) => {
           expect({ ...data }).toEqual({ field: 1 });
           expect(count).toBe(1);
-        })
+        }),
       );
   });
   it('honors fetchPolicy', () => {
@@ -119,7 +119,7 @@ describe('non cache usage', () => {
           .then(({ data }) => {
             expect({ ...data }).toEqual({ field: 1 });
             expect(count).toBe(2);
-          })
+          }),
       );
   });
 });
