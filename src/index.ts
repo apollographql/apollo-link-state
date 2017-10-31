@@ -34,7 +34,7 @@ export const withClientState = resolvers => {
             // Look for the field in the custom resolver map
             const resolve =
               resolvers[(rootValue as any).__typename || type][fieldName];
-            if (resolve) return resolve(fieldValue, args, context, info);
+            if (resolve) return resolve(rootValue, args, context, info);
           };
 
           const mergedData = graphql(
