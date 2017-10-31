@@ -21,9 +21,8 @@ export const withClientState = resolvers => {
       ) || 'Query';
 
     return new Observable(observer => {
-      const obs = server
-        ? forward({ ...operation, query: server })
-        : Observable.of({ data: {} });
+      if (server) operation.query = server;
+      const obs = server ? forward(operation) : Observable.of({ data: {} });
 
       const sub = obs.subscribe({
         next: ({ data, errors }) => {
