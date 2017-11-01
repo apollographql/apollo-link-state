@@ -2,6 +2,9 @@
 
 ### vNEXT
 
+### 0.0.4
+- fix to use aliases in server-side query responses
+
 ### 0.0.3
 - fix mutation of operation breaking context access
 
