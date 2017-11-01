@@ -175,6 +175,31 @@ it('runs resolvers for missing client queries with variables', done => {
   }, done.fail);
 });
 
+it('runs resolvers for missing client queries with aliased field', done => {
+  const query = gql`
+    query Aliased {
+      foo @client {
+        bar
+      }
+      baz: bar {
+        foo
+      }
+    }
+  `;
+  const sample = new ApolloLink(() =>
+    Observable.of({ data: { baz: { foo: true } } }),
+  );
+  const client = withClientState({
+    Query: {
+      foo: () => ({ bar: true }),
+    },
+  });
+  execute(client.concat(sample), { query }).subscribe(({ data }) => {
+    expect(data).toEqual({ foo: { bar: true }, baz: { foo: true } });
+    done();
+  }, done.fail);
+});
+
 it('passes context to client resolvers', done => {
   const query = gql`
     query WithContext {

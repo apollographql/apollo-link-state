@@ -27,12 +27,14 @@ export const withClientState = resolvers => {
       const sub = obs.subscribe({
         next: ({ data, errors }) => {
           const resolver = (fieldName, rootValue = {}, args, context, info) => {
-            const fieldValue = rootValue[fieldName];
+            const fieldValue = rootValue[info.resultKey || fieldName];
             if (fieldValue !== undefined) return fieldValue;
 
             // Look for the field in the custom resolver map
             const resolve =
-              resolvers[(rootValue as any).__typename || type][fieldName];
+              resolvers[(rootValue as any).__typename || type][
+                info.resultKey || fieldName
+              ];
             if (resolve) return resolve(rootValue, args, context, info);
           };
 
