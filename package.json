@@ -1,6 +1,6 @@
 {
   "name": "apollo-link-state",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "An easy way to manage local state with Apollo Link",
   "author": "James Baxley <james@meteor.com>",
   "license": "MIT",
