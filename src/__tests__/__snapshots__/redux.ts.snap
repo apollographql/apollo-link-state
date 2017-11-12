@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`redux reads from the redux store 1`] = `
+Object {
+  "result": Object {
+    "__typename": "fooTypename",
+    "author": Object {
+      "__typename": "fooAuthorName",
+      "name": "Jon Wong",
+      Symbol(id): "$ROOT_QUERY.result.author",
+    },
+    "title": "Some Title",
+    Symbol(id): "$ROOT_QUERY.result",
+  },
+  Symbol(id): "ROOT_QUERY",
+}
+`;
