@@ -30,7 +30,7 @@ const local = withClientState({
   Mutation: {
     // update values in the store on mutations
     addTodo: (_, { message, title }, { cache }) => {
-      const current = client.readQuery({ query, variables });
+      const current = cache.readQuery({ query, variables });
       const data = {
         todos: current.todos.concat([
           { message, title, __typename: 'Todo' }
