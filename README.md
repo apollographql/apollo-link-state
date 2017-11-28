@@ -59,7 +59,7 @@ const initial = await client.query({ query });
 
 const mutation = gql`
   mutation addTodo($message: String, $title: String){
-    addTodo(message: $message, title: $title)
+    addTodo(message: $message, title: $title) @client
   }
 `
 
