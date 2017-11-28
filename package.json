@@ -22,6 +22,8 @@
     "build": "tsc -p .",
     "bundle": "rollup -c",
     "clean": "rimraf lib/* && rimraf coverage/*",
+    "coverage:upload": "codecov",
+    "danger": "danger run --verbose",
     "filesize": "npm run build && npm run build:browser && bundlesize",
     "prelint": "npm run lint-fix",
     "lint-fix":
@@ -41,7 +43,7 @@
     {
       "name": "apollo-link-state",
       "path": "./lib/bundle.min.js",
-      "threshold": "1.2 Kb"
+      "threshold": "1 Kb"
     }
   ],
   "peerDependencies": {
