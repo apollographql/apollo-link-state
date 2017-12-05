@@ -1,7 +1,7 @@
 import { ApolloLink, Observable, Operation, NextLink } from 'apollo-link';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
-import graphql from 'graphql-anywhere';
+import { graphql } from 'graphql-anywhere/lib/async';
 
 import { removeClientSetsFromDocument } from './utils';
 
@@ -20,36 +20,37 @@ export const withClientState = resolvers => {
         (getMainDefinition(query) || ({} as any)).operation,
       ) || 'Query';
 
+    const resolver = (fieldName, rootValue = {}, args, context, info) => {
+      const fieldValue = rootValue[info.resultKey || fieldName];
+      if (fieldValue !== undefined) return fieldValue;
+
+      // Look for the field in the custom resolver map
+      const resolve =
+        resolvers[(rootValue as any).__typename || type][
+          info.resultKey || fieldName
+        ];
+      if (resolve) return resolve(rootValue, args, context, info);
+    };
+
     return new Observable(observer => {
       if (server) operation.query = server;
-      const obs = (server && forward) ? forward(operation) : Observable.of({ data: {} });
+      const obs =
+        server && forward ? forward(operation) : Observable.of({ data: {} });
 
       const sub = obs.subscribe({
         next: ({ data, errors }) => {
-          const resolver = (fieldName, rootValue = {}, args, context, info) => {
-            const fieldValue = rootValue[info.resultKey || fieldName];
-            if (fieldValue !== undefined) return fieldValue;
-
-            // Look for the field in the custom resolver map
-            const resolve =
-              resolvers[(rootValue as any).__typename || type][
-                info.resultKey || fieldName
-              ];
-            if (resolve) return resolve(rootValue, args, context, info);
-          };
-
-          const mergedData = graphql(
+          graphql(
             resolver,
             query,
             data,
             operation.getContext(),
             operation.variables,
-          );
-
-          observer.next({ data: mergedData, errors });
+          ).then(nextData => {
+            observer.next({ data: nextData, errors });
+            observer.complete();
+          });
         },
         error: observer.error.bind(observer),
-        complete: observer.complete.bind(observer),
       });
 
       return () => {

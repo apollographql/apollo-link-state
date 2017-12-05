@@ -1,88 +1,35 @@
 {
-  "name": "apollo-link-state",
-  "version": "0.0.4",
-  "description": "An easy way to manage local state with Apollo Link",
-  "author": "James Baxley <james@meteor.com>",
+  "private": true,
   "license": "MIT",
-  "main": "./lib/bundle.umd.js",
-  "module": "./lib/index.js",
-  "jsnext:main": "./lib/index.js",
-  "typings": "./lib/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/apollographql/apollo-link.git"
-  },
-  "bugs": {
-    "url": "https://github.com/apollographql/apollo-link/issues"
-  },
-  "homepage": "https://github.com/apollographql/apollo-link#readme",
   "scripts": {
-    "build:browser":
-      "browserify ./lib/bundle.umd.js -o=./lib/bundle.js --i apollo-link --i apollo-utilities --i graphql-anywhere && npm run minify:browser",
-    "build": "tsc -p .",
-    "bundle": "rollup -c",
-    "clean": "rimraf lib/* && rimraf coverage/*",
+    "bootstrap": "npm i && lerna bootstrap",
+    "postbootstrap": "npm run build",
+    "build": "lerna run -- build",
+    "test": "lerna run -- test",
+    "prelint": "npm run lint-fix",
+    "lint": "lerna run -- lint",
+    "lint-fix":
+      "prettier --trailing-comma all --single-quote --write \"packages/*/{src,tests,test,benchmark}/**/*.{j,t}s*\"",
+    "lint-staged": "lint-staged",
+    "filesize": "lerna run -- filesize && bundlesize",
+    "type-check": "lerna run -- type-check",
+    "coverage": "lerna run -- coverage",
     "coverage:upload": "codecov",
     "danger": "danger run --verbose",
-    "filesize": "npm run build && npm run build:browser && bundlesize",
-    "prelint": "npm run lint-fix",
-    "lint-fix":
-      "prettier --trailing-comma all --single-quote --write \"src/**/*.{j,t}s*\"",
-    "lint": "tslint --type-check -p tsconfig.json -c tslint.json src/*.ts",
-    "lint-staged": "lint-staged",
-    "minify:browser":
-      "uglifyjs -c -m -o ./lib/bundle.min.js -- ./lib/bundle.js",
-    "postbuild": "npm run bundle",
-    "prebuild": "npm run clean",
-    "prepublishOnly": "npm run clean && npm run build",
-    "test": "jest",
-    "coverage": "npm run lint && jest --coverage",
-    "watch": "tsc -w -p ."
+    "predeploy": "npm run build",
+    "deploy": "lerna publish -m \"chore: Publish\" --independent"
   },
   "bundlesize": [
     {
       "name": "apollo-link-state",
-      "path": "./lib/bundle.min.js",
-      "threshold": "1 Kb"
+      "path": "./packages/apollo-link-state/lib/bundle.min.js",
+      "maxSize": "3 Kb"
     }
   ],
-  "peerDependencies": {
-    "apollo-link": "^1.0.0"
-  },
-  "devDependencies": {
-    "@types/graphql": "0.11.5",
-    "@types/jest": "21.1.5",
-    "apollo-cache-inmemory": "^1.0.0",
-    "apollo-client": "^2.0.1",
-    "apollo-link": "^1.0.0",
-    "browserify": "14.5.0",
-    "bundlesize": "0.15.3",
-    "codecov": "3.0.0",
-    "danger": "1.2.0",
-    "graphql": "0.11.7",
-    "graphql-tag": "2.5.0",
-    "jest": "21.2.1",
-    "lerna": "2.4.0",
-    "lint-staged": "4.3.0",
-    "pre-commit": "1.2.2",
-    "prettier": "1.7.4",
-    "rimraf": "2.6.1",
-    "rollup": "0.45.2",
-    "ts-jest": "21.1.4",
-    "tslint": "5.8.0",
-    "typescript": "2.5.1",
-    "uglify-js": "3.1.5"
-  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-    },
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "json"]
-  },
-  "dependencies": {
-    "apollo-utilities": "^1.0.1",
-    "graphql-anywhere": "^4.0.0"
+    }
   },
   "lint-staged": {
     "*.ts*": [
@@ -95,5 +42,18 @@
     ],
     "*.json*": ["prettier --write", "git add"]
   },
-  "pre-commit": "lint-staged"
+  "pre-commit": "lint-staged",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/zen-observable": "0.5.3",
+    "bundlesize": "0.15.3",
+    "codecov": "3.0.0",
+    "danger": "1.2.0",
+    "lerna": "2.5.1",
+    "lint-staged": "5.0.0",
+    "pre-commit": "1.2.2",
+    "prettier": "1.8.2",
+    "ts-jest": "21.2.3",
+    "typescript": "2.6.2"
+  }
 }
