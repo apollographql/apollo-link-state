@@ -38,7 +38,7 @@ const local = withClientState({
       };
       cache.writeQuery({ query, variables, data });
       return null;
-    };
+    },
   },
 });
 
