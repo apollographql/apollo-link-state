@@ -45,8 +45,8 @@ export const withClientState = resolvers => {
             data,
             operation.getContext(),
             operation.variables,
-          ).then(data => {
-            observer.next({ data, errors });
+          ).then(nextData => {
+            observer.next({ data: nextData, errors });
             observer.complete();
           });
         },
