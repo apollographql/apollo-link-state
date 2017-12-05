@@ -79,7 +79,7 @@
   },
   "dependencies": {
     "apollo-utilities": "^1.0.1",
-    "graphql-anywhere": "^4.0.0"
+    "graphql-anywhere": "^4.1.0-alpha.0"
   },
   "lint-staged": {
     "*.ts*": [
