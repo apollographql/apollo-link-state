@@ -33,7 +33,7 @@ describe('server and client state', () => {
 
     const local = withClientState({
       Mutation: {
-        toggleItem: (_, { id }, { cache }) => {
+        toggleItem: async (_, { id }, { cache }) => {
           id = `ListItem:${id}`;
           const fragment = gql`
             fragment item on ListItem {
@@ -46,7 +46,7 @@ describe('server and client state', () => {
             ...previous,
             isSelected: !previous.isSelected,
           };
-          cache.writeFragment({
+          await cache.writeFragment({
             id,
             fragment,
             data,
