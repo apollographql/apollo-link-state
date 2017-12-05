@@ -2,6 +2,10 @@
 
 ### vNEXT
 
+### 0.0.5
+- moved to lerna repo for examples
+- added support for async state
+
 ### 0.0.4
 - fix to use aliases in server-side query responses
 
