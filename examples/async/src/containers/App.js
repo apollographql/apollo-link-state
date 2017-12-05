@@ -8,34 +8,26 @@ import Posts from '../components/Posts';
 
 class App extends Component {
   static propTypes = {
-    selectedSubreddit: PropTypes.string.isRequired,
+    subreddit: PropTypes.string.isRequired,
     posts: PropTypes.array.isRequired,
-    isFetching: PropTypes.bool.isRequired,
+    loading: PropTypes.bool.isRequired,
     lastUpdated: PropTypes.number,
-    change: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
   };
 
   handleRefreshClick = e => {
     e.preventDefault();
-
-    const { selectedSubreddit } = this.props;
-    this.props.refetch({ subreddit: selectedSubreddit });
+    this.props.refetch({ subreddit: this.props.subreddit });
   };
 
   render() {
-    const {
-      selectedSubreddit,
-      posts,
-      isFetching,
-      lastUpdated,
-      change,
-    } = this.props;
+    const { subreddit, posts, loading, lastUpdated, onChange } = this.props;
     const isEmpty = posts.length === 0;
     return (
       <div>
         <Picker
-          value={selectedSubreddit}
-          onChange={change}
+          value={subreddit}
+          onChange={onChange}
           options={['reactjs', 'frontend']}
         />
         <p>
@@ -44,18 +36,18 @@ class App extends Component {
               Last updated at {new Date(lastUpdated).toLocaleTimeString()}.{' '}
             </span>
           )}
-          {!isFetching && (
+          {!loading && (
             <button onClick={this.handleRefreshClick}>Refresh</button>
           )}
         </p>
         {isEmpty ? (
-          isFetching ? (
+          loading ? (
             <h2>Loading...</h2>
           ) : (
             <h2>Empty.</h2>
           )
         ) : (
-          <div style={{ opacity: isFetching ? 0.5 : 1 }}>
+          <div style={{ opacity: loading ? 0.5 : 1 }}>
             <Posts posts={posts} />
           </div>
         )}
@@ -77,16 +69,11 @@ const SELECT_SUBREDDIT = gql`
 `;
 
 const withSubreddits = graphql(SELECT_SUBREDDIT, {
-  options: ({ subreddit }) => ({
-    variables: { subreddit },
-    notifyOnNetworkStatusChange: true,
-  }),
+  options: { notifyOnNetworkStatusChange: true },
   props: ({ data, ownProps }) => ({
-    refetch: data.refetch,
-    change: ownProps.change,
-    selectedSubreddit: ownProps.subreddit,
+    ...ownProps,
+    ...data,
     posts: data.postsBySubreddit ? data.postsBySubreddit.items : [],
-    isFetching: data.loading,
     lastUpdated: data.postsBySubreddit
       ? data.postsBySubreddit.lastUpdated
       : null,
@@ -97,15 +84,13 @@ const AppWithData = withSubreddits(App);
 
 // this will be much easier with react-apollo 2.0
 export default class VariableChange extends Component {
-  state = {
-    subreddit: 'reactjs',
-  };
+  state = { subreddit: 'reactjs' };
 
   render() {
     return (
       <AppWithData
         subreddit={this.state.subreddit}
-        change={subreddit => this.setState({ subreddit })}
+        onChange={subreddit => this.setState({ subreddit })}
       />
     );
   }
