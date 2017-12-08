@@ -2,7 +2,8 @@
 
 ### vNEXT
 
-### 0.0.5
+### 0.1.0
+- official async support
 
 ### 0.0.5-alpha.0
 - moved to lerna repo for examples
