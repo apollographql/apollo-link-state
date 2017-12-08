@@ -3,6 +3,8 @@
 ### vNEXT
 
 ### 0.0.5
+
+### 0.0.5-alpha.0
 - moved to lerna repo for examples
 - added support for async state
 
