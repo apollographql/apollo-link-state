@@ -13,6 +13,8 @@ import {
   removeDirectivesFromDocument,
 } from 'apollo-utilities';
 
+import { ApolloCacheClient, WriteDataArgs } from './index';
+
 const connectionRemoveConfig = {
   test: (directive: DirectiveNode) => directive.name.value === 'client',
   remove: true,
@@ -127,4 +129,23 @@ function selectionSetFromObj(obj) {
   };
 
   return selectionSet;
+}
+
+export function addWriteDataToCache(cache: ApolloCacheClient) {
+  cache.writeData = ({ id, data }: WriteDataArgs) => {
+    if (id) {
+      cache.writeFragment({
+        fragment: fragmentFromPojo(data),
+
+        // Add a type here to satisfy the inmemory cache
+        data: { ...data, __typename: '__FakeType' },
+        id,
+      });
+    } else {
+      cache.writeQuery({
+        query: queryFromPojo(data),
+        data,
+      });
+    }
+  };
 }

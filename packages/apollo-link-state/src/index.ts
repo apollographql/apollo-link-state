@@ -8,6 +8,7 @@ import {
   removeClientSetsFromDocument,
   fragmentFromPojo,
   queryFromPojo,
+  addWriteDataToCache,
 } from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
@@ -61,20 +62,7 @@ export const withClientState = resolvers => {
           const cache: ApolloCacheClient = context.cache;
 
           if (cache && !cache.writeData) {
-            cache.writeData = ({ id, data }: WriteDataArgs) => {
-              if (id) {
-                cache.writeFragment({
-                  fragment: fragmentFromPojo(data),
-                  data,
-                  id,
-                });
-              } else {
-                cache.writeQuery({
-                  query: queryFromPojo(data),
-                  data,
-                });
-              }
-            };
+            addWriteDataToCache(cache);
           }
 
           graphql(resolver, query, data, context, operation.variables).then(
