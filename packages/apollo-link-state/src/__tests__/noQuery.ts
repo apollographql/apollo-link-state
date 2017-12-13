@@ -1,14 +1,14 @@
 import { print } from 'graphql/language/printer';
 import { parse } from 'graphql/language/parser';
 
-import { documentFromPojo } from '../utils';
+import { queryFromPojo, fragmentFromPojo } from '../utils';
 
 describe('writing data with no query', () => {
   describe('converts a JavaScript object to a query correctly', () => {
     it('basic', () => {
       expect(
         print(
-          documentFromPojo({
+          queryFromPojo({
             number: 5,
             bool: true,
             bool2: false,
@@ -23,7 +23,7 @@ describe('writing data with no query', () => {
     it('nested', () => {
       expect(
         print(
-          documentFromPojo({
+          queryFromPojo({
             number: 5,
             bool: true,
             nested: {
@@ -40,7 +40,26 @@ describe('writing data with no query', () => {
     it('arrays', () => {
       expect(
         print(
-          documentFromPojo({
+          queryFromPojo({
+            number: [5],
+            bool: [[true]],
+            nested: [
+              {
+                bool2: false,
+                undef: undefined,
+                nullField: null,
+                str: 'string',
+              },
+            ],
+          }),
+        ),
+      ).toMatchSnapshot();
+    });
+
+    it('fragments', () => {
+      expect(
+        print(
+          fragmentFromPojo({
             number: [5],
             bool: [[true]],
             nested: [
