@@ -4,6 +4,7 @@ import {
   OperationDefinitionNode,
   SelectionSetNode,
   FieldNode,
+  FragmentDefinitionNode,
 } from 'graphql';
 
 import {
@@ -37,7 +38,7 @@ export function removeClientSetsFromDocument(
   return docClone;
 }
 
-export function documentFromPojo(obj: any): DocumentNode {
+export function queryFromPojo(obj: any): DocumentNode {
   const op: OperationDefinitionNode = {
     kind: 'OperationDefinition',
     operation: 'query',
@@ -51,6 +52,31 @@ export function documentFromPojo(obj: any): DocumentNode {
   const out: DocumentNode = {
     kind: 'Document',
     definitions: [op],
+  };
+
+  return out;
+}
+
+export function fragmentFromPojo(obj: any): DocumentNode {
+  const frag: FragmentDefinitionNode = {
+    kind: 'FragmentDefinition',
+    typeCondition: {
+      kind: 'NamedType',
+      name: {
+        kind: 'Name',
+        value: '__FakeType',
+      },
+    },
+    name: {
+      kind: 'Name',
+      value: 'GeneratedClientQuery',
+    },
+    selectionSet: selectionSetFromObj(obj),
+  };
+
+  const out: DocumentNode = {
+    kind: 'Document',
+    definitions: [frag],
   };
 
   return out;
