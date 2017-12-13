@@ -1,11 +1,27 @@
 import { ApolloLink, Observable, Operation, NextLink } from 'apollo-link';
+import { ApolloCache } from 'apollo-cache';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
 import { graphql } from 'graphql-anywhere/lib/async';
 
-import { removeClientSetsFromDocument } from './utils';
+import {
+  removeClientSetsFromDocument,
+  fragmentFromPojo,
+  queryFromPojo,
+} from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
+
+export type WriteDataArgs = {
+  id?: string;
+  data: any;
+};
+
+export type WriteData = {
+  writeData: ({ id, data }: WriteDataArgs) => void;
+};
+
+export type ApolloCacheClient = ApolloCache<any> & WriteData;
 
 export const withClientState = resolvers => {
   return new ApolloLink((operation: Operation, forward: NextLink) => {
@@ -39,16 +55,34 @@ export const withClientState = resolvers => {
 
       const sub = obs.subscribe({
         next: ({ data, errors }) => {
-          graphql(
-            resolver,
-            query,
-            data,
-            operation.getContext(),
-            operation.variables,
-          ).then(nextData => {
-            observer.next({ data: nextData, errors });
-            observer.complete();
-          });
+          const context = operation.getContext();
+
+          // Add a writeData method to the cache
+          const cache: ApolloCacheClient = context.cache;
+
+          if (cache && !cache.writeData) {
+            cache.writeData = ({ id, data }: WriteDataArgs) => {
+              if (id) {
+                cache.writeFragment({
+                  fragment: fragmentFromPojo(data),
+                  data,
+                  id,
+                });
+              } else {
+                cache.writeQuery({
+                  query: queryFromPojo(data),
+                  data,
+                });
+              }
+            };
+          }
+
+          graphql(resolver, query, data, context, operation.variables).then(
+            nextData => {
+              observer.next({ data: nextData, errors });
+              observer.complete();
+            },
+          );
         },
         error: observer.error.bind(observer),
       });
