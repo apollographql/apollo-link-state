@@ -116,5 +116,46 @@ describe('writing data with no query', () => {
           expect({ ...data }).toEqual({ field: 1 });
         });
     });
+
+    it('lets you write to the cache with a mutation using an ID', () => {
+      const query = gql`
+        {
+          obj @client {
+            field
+          }
+        }
+      `;
+
+      const mutation = gql`
+        mutation start {
+          start @client
+        }
+      `;
+
+      const local = withClientState({
+        Mutation: {
+          start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
+            cache.writeQuery({
+              query,
+              data: { obj: { field: 1, id: 'uniqueId', __typename: 'Object' } },
+            });
+            cache.writeData({ id: 'Object:uniqueId', data: { field: 2 } });
+            return { start: true };
+          },
+        },
+      });
+
+      const client = new ApolloClient({
+        cache: new InMemoryCache(),
+        link: local,
+      });
+
+      return client
+        .mutate({ mutation })
+        .then(() => client.query({ query }))
+        .then(({ data }: any) => {
+          expect(data.obj.field).toEqual(2);
+        });
+    });
   });
 });
