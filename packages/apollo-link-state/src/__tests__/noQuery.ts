@@ -36,5 +36,24 @@ describe('writing data with no query', () => {
         ),
       ).toMatchSnapshot();
     });
+
+    it('arrays', () => {
+      expect(
+        print(
+          documentFromPojo({
+            number: [5],
+            bool: [[true]],
+            nested: [
+              {
+                bool2: false,
+                undef: undefined,
+                nullField: null,
+                str: 'string',
+              },
+            ],
+          }),
+        ),
+      ).toMatchSnapshot();
+    });
   });
 });

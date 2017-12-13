@@ -12,8 +12,6 @@ import {
   removeDirectivesFromDocument,
 } from 'apollo-utilities';
 
-import { select } from 'async';
-
 const connectionRemoveConfig = {
   test: (directive: DirectiveNode) => directive.name.value === 'client',
   remove: true,
