@@ -13,7 +13,7 @@ import {
   removeDirectivesFromDocument,
 } from 'apollo-utilities';
 
-import { ApolloCacheClient, WriteDataArgs } from './index';
+import { ApolloCacheClient, WriteDataArgs } from './';
 
 const connectionRemoveConfig = {
   test: (directive: DirectiveNode) => directive.name.value === 'client',
