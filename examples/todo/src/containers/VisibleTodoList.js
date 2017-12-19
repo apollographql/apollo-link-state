@@ -35,13 +35,13 @@ const withTodos = graphql(TODOS_QUERY, {
   },
 });
 
-const TODO_MUTATON = gql`
+const TODO_MUTATION = gql`
   mutation ToggleTodo($id: Int!) {
     toggleTodo(id: $id) @client
   }
 `;
 
-const toggleTodo = graphql(TODO_MUTATON, {
+const toggleTodo = graphql(TODO_MUTATION, {
   props: ({ mutate }) => ({
     onTodoClick: id => mutate({ variables: { id } }),
   }),
