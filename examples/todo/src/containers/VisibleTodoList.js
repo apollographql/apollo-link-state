@@ -41,12 +41,12 @@ const TODO_MUTATON = gql`
   }
 `;
 
-const toogleTodo = graphql(TODO_MUTATON, {
+const toggleTodo = graphql(TODO_MUTATON, {
   props: ({ mutate }) => ({
     onTodoClick: id => mutate({ variables: { id } }),
   }),
 });
 
-const VisibleTodoList = toogleTodo(withTodos(TodoList));
+const VisibleTodoList = toggleTodo(withTodos(TodoList));
 
 export default VisibleTodoList;
