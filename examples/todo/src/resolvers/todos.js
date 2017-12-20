@@ -22,7 +22,7 @@ export default {
           { id: nextTodoId++, text, completed: false, __typename: 'TodoItem' },
         ]),
       };
-      cache.writeQuery({ query, data });
+      cache.writeData({ data });
       return data;
     },
     toggleTodo: (_, variables, { cache }) => {
@@ -32,9 +32,9 @@ export default {
           completed
         }
       `;
-      const data = cache.readFragment({ fragment, id });
-      data.completed = !data.completed;
-      cache.writeFragment({ fragment, id, data });
+      const todo = cache.readFragment({ fragment, id });
+      const data = { ...todo, completed: !todo.completed };
+      cache.writeData({ id, data });
       return data;
     },
   },

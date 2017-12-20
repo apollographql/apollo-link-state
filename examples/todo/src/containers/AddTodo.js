@@ -2,13 +2,13 @@ import React from 'react';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
 
-const mutation = gql`
+const ADD_TODO = gql`
   mutation addTodo($text: String!) {
     addTodo(text: $text) @client
   }
 `;
 
-let AddTodo = ({ mutate }) => {
+const AddTodo = ({ mutate }) => {
   let input;
 
   return (
@@ -33,6 +33,5 @@ let AddTodo = ({ mutate }) => {
     </div>
   );
 };
-AddTodo = graphql(mutation)(AddTodo);
 
-export default AddTodo;
+export default graphql(ADD_TODO)(AddTodo);
