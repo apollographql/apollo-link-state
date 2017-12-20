@@ -2,7 +2,7 @@
   "name": "todos",
   "private": true,
   "description": null,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "dependencies": {
     "apollo-cache-inmemory": "1.0.0",
     "apollo-client": "^2.0.1",
