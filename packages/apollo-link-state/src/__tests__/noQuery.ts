@@ -96,10 +96,12 @@ describe('writing data with no query', () => {
       `;
 
       const local = withClientState({
-        Mutation: {
-          start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
-            cache.writeData({ data: { field: 1 } });
-            return { start: true };
+        resolvers: {
+          Mutation: {
+            start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
+              cache.writeData({ data: { field: 1 } });
+              return { start: true };
+            },
           },
         },
       });
@@ -133,14 +135,18 @@ describe('writing data with no query', () => {
       `;
 
       const local = withClientState({
-        Mutation: {
-          start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
-            cache.writeQuery({
-              query,
-              data: { obj: { field: 1, id: 'uniqueId', __typename: 'Object' } },
-            });
-            cache.writeData({ id: 'Object:uniqueId', data: { field: 2 } });
-            return { start: true };
+        resolvers: {
+          Mutation: {
+            start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
+              cache.writeQuery({
+                query,
+                data: {
+                  obj: { field: 1, id: 'uniqueId', __typename: 'Object' },
+                },
+              });
+              cache.writeData({ id: 'Object:uniqueId', data: { field: 2 } });
+              return { start: true };
+            },
           },
         },
       });

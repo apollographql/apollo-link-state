@@ -32,34 +32,36 @@ describe('server and client state', () => {
     const http = new ApolloLink(() => Observable.of({ data }));
 
     const local = withClientState({
-      Mutation: {
-        toggleItem: async (_, { id }, { cache }) => {
-          id = `ListItem:${id}`;
-          const fragment = gql`
-            fragment item on ListItem {
-              __typename
-              isSelected
-            }
-          `;
-          const previous = cache.readFragment({ fragment, id });
-          const data = {
-            ...previous,
-            isSelected: !previous.isSelected,
-          };
-          await cache.writeFragment({
-            id,
-            fragment,
-            data,
-          });
+      resolvers: {
+        Mutation: {
+          toggleItem: async (_, { id }, { cache }) => {
+            id = `ListItem:${id}`;
+            const fragment = gql`
+              fragment item on ListItem {
+                __typename
+                isSelected
+              }
+            `;
+            const previous = cache.readFragment({ fragment, id });
+            const data = {
+              ...previous,
+              isSelected: !previous.isSelected,
+            };
+            await cache.writeFragment({
+              id,
+              fragment,
+              data,
+            });
 
-          return data;
+            return data;
+          },
         },
-      },
-      ListItem: {
-        isSelected: (source, args, context) => {
-          expect(source.name).toBeDefined();
-          // list items default to an unselected state
-          return false;
+        ListItem: {
+          isSelected: (source, args, context) => {
+            expect(source.name).toBeDefined();
+            // list items default to an unselected state
+            return false;
+          },
         },
       },
     });
