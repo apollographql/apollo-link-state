@@ -8,6 +8,12 @@ import { removeClientSetsFromDocument, addWriteDataToCache } from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
+export type ClientStateConfig = {
+  cache: ApolloCache<any>;
+  resolvers: any;
+  defaults: any;
+};
+
 export type WriteDataArgs = {
   id?: string;
   data: any;
@@ -19,7 +25,7 @@ export type WriteData = {
 
 export type ApolloCacheClient = ApolloCache<any> & WriteData;
 
-export const withClientState = resolvers => {
+export const withClientState = ({ resolvers, defaults, cache }) => {
   return new ApolloLink((operation: Operation, forward: NextLink) => {
     const isClient = hasDirectives(['client'], operation.query);
 
