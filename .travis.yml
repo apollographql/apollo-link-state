@@ -7,7 +7,7 @@ install:
   - npm prune
 
 script:
-  - npm run danger
+  # - npm run danger (disabling until it works again)
 
     # using jest --coverage also runs the tests so this will cut down CI time
   - npm run coverage
