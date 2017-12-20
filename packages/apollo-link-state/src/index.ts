@@ -4,12 +4,7 @@ import { ApolloCache } from 'apollo-cache';
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
 import { graphql } from 'graphql-anywhere/lib/async';
 
-import {
-  removeClientSetsFromDocument,
-  fragmentFromPojo,
-  queryFromPojo,
-  addWriteDataToCache,
-} from './utils';
+import { removeClientSetsFromDocument, addWriteDataToCache } from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
