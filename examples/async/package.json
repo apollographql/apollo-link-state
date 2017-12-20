@@ -8,7 +8,7 @@
   "dependencies": {
     "apollo-cache-inmemory": "^1.1.2",
     "apollo-client": "^2.1.0",
-    "apollo-link-state": "0.0.4",
+    "apollo-link-state": "^0.2.0",
     "graphql": "^0.11.7",
     "graphql-tag": "^2.5.0",
     "prop-types": "^15.5.10",
