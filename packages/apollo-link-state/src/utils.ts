@@ -60,6 +60,7 @@ export function queryFromPojo(obj: any): DocumentNode {
 }
 
 export function fragmentFromPojo(obj: any): DocumentNode {
+  console.log({ obj });
   const frag: FragmentDefinitionNode = {
     kind: 'FragmentDefinition',
     typeCondition: {
@@ -133,12 +134,13 @@ function selectionSetFromObj(obj) {
 
 export function addWriteDataToCache(cache: ApolloCacheClient) {
   cache.writeData = ({ id, data }: WriteDataArgs) => {
+    console.log({ data });
     if (id) {
       cache.writeFragment({
         fragment: fragmentFromPojo(data),
 
         // Add a type here to satisfy the inmemory cache
-        data: { ...data, __typename: '__FakeType' },
+        data: { __typename: '__FakeType', ...data },
         id,
       });
     } else {
