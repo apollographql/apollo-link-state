@@ -9,7 +9,7 @@ import { removeClientSetsFromDocument, addWriteDataToCache } from './utils';
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
 export type ClientStateConfig = {
-  cache: ApolloCache<any>;
+  cache: ApolloCacheClient;
   resolvers: any;
   defaults: any;
 };
@@ -26,6 +26,20 @@ export type WriteData = {
 export type ApolloCacheClient = ApolloCache<any> & WriteData;
 
 export const withClientState = ({ resolvers, defaults, cache }) => {
+  // if (!cache | !resolvers | !defaults) {
+  //   throw new Error(
+  //     `One of the required configuration properties is missing. Please see [DOCS link] for details`,
+  //   );
+  // }
+
+  if (cache && defaults) {
+    if (!cache.writeData) {
+      addWriteDataToCache(cache);
+    }
+
+    cache.writeData({ data: defaults });
+  }
+
   return new ApolloLink((operation: Operation, forward: NextLink) => {
     const isClient = hasDirectives(['client'], operation.query);
 
@@ -53,7 +67,11 @@ export const withClientState = ({ resolvers, defaults, cache }) => {
     return new Observable(observer => {
       if (server) operation.query = server;
       const obs =
-        server && forward ? forward(operation) : Observable.of({ data: {} });
+        server && forward
+          ? forward(operation)
+          : Observable.of({
+              data: {},
+            });
 
       const sub = obs.subscribe({
         next: ({ data, errors }) => {
@@ -68,7 +86,10 @@ export const withClientState = ({ resolvers, defaults, cache }) => {
 
           graphql(resolver, query, data, context, operation.variables).then(
             nextData => {
-              observer.next({ data: nextData, errors });
+              observer.next({
+                data: nextData,
+                errors,
+              });
               observer.complete();
             },
           );

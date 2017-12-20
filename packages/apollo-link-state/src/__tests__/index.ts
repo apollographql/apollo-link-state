@@ -46,7 +46,7 @@ const doubleData = {
   bar: { foo: false },
 };
 
-const defaultResolvers = {
+const resolvers = {
   Query: {
     foo: () => ({ bar: true }),
   },
@@ -57,7 +57,7 @@ it('strips out the client directive and does not call other links if no more fie
     done.fail(new Error('should not have called'));
   });
 
-  const client = withClientState(defaultResolvers);
+  const client = withClientState({ resolvers });
 
   execute(client.concat(nextLink), { query }).subscribe(result => {
     expect(result.data).toEqual({ foo: { bar: true } });
@@ -79,7 +79,7 @@ it('passes a query on to the next link', done => {
     return Observable.of({ data: { bar: { foo: true } } });
   });
 
-  const client = withClientState(defaultResolvers);
+  const client = withClientState({ resolvers });
 
   execute(client.concat(nextLink), { query: mixedQuery }).subscribe(
     () => done(),
@@ -89,8 +89,10 @@ it('passes a query on to the next link', done => {
 
 it('runs resolvers for client queries', done => {
   const client = withClientState({
-    Query: {
-      foo: () => ({ bar: true }),
+    resolvers: {
+      Query: {
+        foo: () => ({ bar: true }),
+      },
     },
   });
   execute(client, { query }).subscribe(({ data }) => {
@@ -113,11 +115,7 @@ it('runs resolvers for missing client queries with server data', done => {
   const sample = new ApolloLink(() =>
     Observable.of({ data: { bar: { baz: true } } }),
   );
-  const client = withClientState({
-    Query: {
-      foo: () => ({ bar: true }),
-    },
-  });
+  const client = withClientState({ resolvers });
   execute(client.concat(sample), { query }).subscribe(({ data }) => {
     expect(data).toEqual({ foo: { bar: true }, bar: { baz: true } });
     done();
@@ -142,11 +140,7 @@ it('runs resolvers for missing client queries with server data including fragmen
   const sample = new ApolloLink(() =>
     Observable.of({ data: { bar: { baz: true } } }),
   );
-  const client = withClientState({
-    Query: {
-      foo: () => ({ bar: true }),
-    },
-  });
+  const client = withClientState({ resolvers });
   execute(client.concat(sample), { query }).subscribe(({ data }) => {
     expect(data).toEqual({ foo: { bar: true }, bar: { baz: true } });
     done();
@@ -162,11 +156,13 @@ it('runs resolvers for missing client queries with variables', done => {
     }
   `;
   const client = withClientState({
-    Query: {
-      foo: () => ({ __typename: 'Foo' }),
-    },
-    Foo: {
-      bar: (data, { id }) => id,
+    resolvers: {
+      Query: {
+        foo: () => ({ __typename: 'Foo' }),
+      },
+      Foo: {
+        bar: (data, { id }) => id,
+      },
     },
   });
   execute(client, { query, variables: { id: 1 } }).subscribe(({ data }) => {
@@ -190,9 +186,7 @@ it('runs resolvers for missing client queries with aliased field', done => {
     Observable.of({ data: { baz: { foo: true } } }),
   );
   const client = withClientState({
-    Query: {
-      foo: () => ({ bar: true }),
-    },
+    resolvers,
   });
   execute(client.concat(sample), { query }).subscribe(({ data }) => {
     expect(data).toEqual({ foo: { bar: true }, baz: { foo: true } });
@@ -209,11 +203,13 @@ it('passes context to client resolvers', done => {
     }
   `;
   const client = withClientState({
-    Query: {
-      foo: () => ({ __typename: 'Foo' }),
-    },
-    Foo: {
-      bar: (data, _, { id }) => id,
+    resolvers: {
+      Query: {
+        foo: () => ({ __typename: 'Foo' }),
+      },
+      Foo: {
+        bar: (data, _, { id }) => id,
+      },
     },
   });
   execute(client, { query, context: { id: 1 } }).subscribe(({ data }) => {

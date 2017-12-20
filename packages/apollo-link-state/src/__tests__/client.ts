@@ -17,7 +17,7 @@ describe('non cache usage', () => {
     `;
 
     const link = new ApolloLink(() => Observable.of({ data: { field: 1 } }));
-    const local = withClientState({});
+    const local = withClientState({ resolvers: {} });
 
     const client = new ApolloClient({
       cache: new InMemoryCache(),
@@ -36,8 +36,10 @@ describe('non cache usage', () => {
     `;
 
     const local = withClientState({
-      Query: {
-        field: () => 1,
+      resolvers: {
+        Query: {
+          field: () => 1,
+        },
       },
     });
 
@@ -59,10 +61,12 @@ describe('non cache usage', () => {
 
     let count = 0;
     const local = withClientState({
-      Query: {
-        field: () => {
-          count++;
-          return 1;
+      resolvers: {
+        Query: {
+          field: () => {
+            count++;
+            return 1;
+          },
         },
       },
     });
@@ -94,10 +98,12 @@ describe('non cache usage', () => {
 
     let count = 0;
     const local = withClientState({
-      Query: {
-        field: () => {
-          count++;
-          return 1;
+      resolvers: {
+        Query: {
+          field: () => {
+            count++;
+            return 1;
+          },
         },
       },
     });
@@ -139,10 +145,12 @@ describe('cache usage', () => {
     `;
 
     const local = withClientState({
-      Mutation: {
-        start: (_, $, { cache }: { cache: InMemoryCache }) => {
-          cache.writeQuery({ query, data: { field: 1 } });
-          return { start: true };
+      resolvers: {
+        Mutation: {
+          start: (_, $, { cache }: { cache: InMemoryCache }) => {
+            cache.writeQuery({ query, data: { field: 1 } });
+            return { start: true };
+          },
         },
       },
     });
@@ -173,13 +181,15 @@ describe('cache usage', () => {
     `;
 
     const local = withClientState({
-      Query: {
-        field: () => 0,
-      },
-      Mutation: {
-        start: (_, $, { cache }: { cache: InMemoryCache }) => {
-          cache.writeQuery({ query, data: { field: 1 } });
-          return { start: true };
+      resolvers: {
+        Query: {
+          field: () => 0,
+        },
+        Mutation: {
+          start: (_, $, { cache }: { cache: InMemoryCache }) => {
+            cache.writeQuery({ query, data: { field: 1 } });
+            return { start: true };
+          },
         },
       },
     });
@@ -221,13 +231,15 @@ describe('cache usage', () => {
     `;
 
     const local = withClientState({
-      Mutation: {
-        start: (_, variables, { cache }) => {
-          cache.writeQuery({ query, data: { field: variables.field } });
-          return {
-            __typename: 'Field',
-            field: variables.field,
-          };
+      resolvers: {
+        Mutation: {
+          start: (_, variables, { cache }) => {
+            cache.writeQuery({ query, data: { field: variables.field } });
+            return {
+              __typename: 'Field',
+              field: variables.field,
+            };
+          },
         },
       },
     });
@@ -279,19 +291,21 @@ describe('sample usage', () => {
     };
 
     const local = withClientState({
-      Query: {
-        // initial count
-        count: () => 0,
-      },
-      Mutation: {
-        increment: update(query, ({ count, ...rest }, { amount }) => ({
-          ...rest,
-          count: count + amount,
-        })),
-        decrement: update(query, ({ count, ...rest }, { amount }) => ({
-          ...rest,
-          count: count - amount,
-        })),
+      resolvers: {
+        Query: {
+          // initial count
+          count: () => 0,
+        },
+        Mutation: {
+          increment: update(query, ({ count, ...rest }, { amount }) => ({
+            ...rest,
+            count: count + amount,
+          })),
+          decrement: update(query, ({ count, ...rest }, { amount }) => ({
+            ...rest,
+            count: count - amount,
+          })),
+        },
       },
     });
 
@@ -348,13 +362,15 @@ describe('sample usage', () => {
     };
 
     const local = withClientState({
-      Query: {
-        todos: () => [],
-      },
-      Mutation: {
-        addTodo: update(query, ({ todos }, { message, title }) => ({
-          todos: todos.concat([{ message, title, __typename: 'Todo' }]),
-        })),
+      resolvers: {
+        Query: {
+          todos: () => [],
+        },
+        Mutation: {
+          addTodo: update(query, ({ todos }, { message, title }) => ({
+            todos: todos.concat([{ message, title, __typename: 'Todo' }]),
+          })),
+        },
       },
     });
 
