@@ -1,6 +1,11 @@
 # Change log
 
 ### vNEXT
+- BREAKING: Changed `withClientState` API to take a config object with `resolvers`, `defaults`, and `cache` properties: [#132](https://github.com/apollographql/apollo-link-state/pull/132)
+- Fix overriding fragment parent's __typename: [#131](https://github.com/apollographql/apollo-link-state/pull/131)
+
+### 0.2.0
+- Added `cache.writeData` to easily write data to the cache: [#123](https://github.com/apollographql/apollo-link-state/pull/123)
 
 ### 0.1.0
 - official async support
