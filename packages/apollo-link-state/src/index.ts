@@ -57,7 +57,7 @@ export const withClientState = (
         resolvers[(rootValue as any).__typename || type][
           info.resultKey || fieldName
         ];
-      if (resolve) return resolve(rootValue, args, context, info);
+      if (resolve) return resolve(rootValue, args, context, info) || null;
     };
 
     return new Observable(observer => {

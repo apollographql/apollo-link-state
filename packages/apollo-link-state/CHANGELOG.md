@@ -1,6 +1,9 @@
 # Change log
 
-### vNEXT
+### vNext
+- If a resolver doesn't have a return value, default to null
+
+### 0.3.0
 - BREAKING: Changed `withClientState` API to take a config object with `resolvers`, `defaults`, and `cache` properties: [#132](https://github.com/apollographql/apollo-link-state/pull/132)
 - Fix overriding fragment parent's __typename: [#131](https://github.com/apollographql/apollo-link-state/pull/131)
 
