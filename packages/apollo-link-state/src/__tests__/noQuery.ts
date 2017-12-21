@@ -119,7 +119,7 @@ describe('writing data with no query', () => {
         });
     });
 
-    fit('lets you write to the cache with a mutation using an ID', () => {
+    it('lets you write to the cache with a mutation using an ID', () => {
       const query = gql`
         {
           obj @client {
@@ -164,7 +164,7 @@ describe('writing data with no query', () => {
         });
     });
 
-    fit(`doesn't overwrite __typename when writing to the cache with an id`, () => {
+    it(`doesn't overwrite __typename when writing to the cache with an id`, () => {
       const query = gql`
         {
           obj @client {
