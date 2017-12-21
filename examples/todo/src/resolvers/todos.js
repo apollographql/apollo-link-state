@@ -39,7 +39,6 @@ const todos = {
         `;
         const todo = cache.readFragment({ fragment, id });
         const data = { ...todo, completed: !todo.completed };
-        console.log(data);
         cache.writeData({ id, data });
       },
     },
