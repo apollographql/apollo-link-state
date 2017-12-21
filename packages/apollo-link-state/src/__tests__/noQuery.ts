@@ -183,23 +183,25 @@ describe('writing data with no query', () => {
       `;
 
       const local = withClientState({
-        Mutation: {
-          start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
-            cache.writeQuery({
-              query,
-              data: {
-                obj: {
-                  field: { field2: 1, __typename: 'Field' },
-                  id: 'uniqueId',
-                  __typename: 'Object',
+        resolvers: {
+          Mutation: {
+            start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
+              cache.writeQuery({
+                query,
+                data: {
+                  obj: {
+                    field: { field2: 1, __typename: 'Field' },
+                    id: 'uniqueId',
+                    __typename: 'Object',
+                  },
                 },
-              },
-            });
-            cache.writeData({
-              id: 'Object:uniqueId',
-              data: { field: { field2: 2, __typename: 'Field' } },
-            });
-            return { start: true };
+              });
+              cache.writeData({
+                id: 'Object:uniqueId',
+                data: { field: { field2: 2, __typename: 'Field' } },
+              });
+              return { start: true };
+            },
           },
         },
       });
@@ -219,8 +221,63 @@ describe('writing data with no query', () => {
         .catch(e => console.log(e));
     });
 
-    it(
-      `adds a __typename for an object without one when writing to the cache with an id`,
-    );
+    it(`adds a __typename for an object without one when writing to the cache with an id`, () => {
+      const query = gql`
+        {
+          obj @client {
+            field {
+              field2
+            }
+            id
+          }
+        }
+      `;
+
+      const mutation = gql`
+        mutation start {
+          start @client
+        }
+      `;
+
+      const local = withClientState({
+        resolvers: {
+          Mutation: {
+            start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
+              cache.writeQuery({
+                query,
+                data: {
+                  obj: {
+                    field: { field2: 1, __typename: 'Field' },
+                    id: 'uniqueId',
+                  },
+                },
+              });
+
+              console.log(cache.extract());
+
+              cache.writeData({
+                id: '$ROOT_QUERY.obj',
+                data: { field: { field2: 2, __typename: 'Field' } },
+              });
+              return { start: true };
+            },
+          },
+        },
+      });
+
+      const client = new ApolloClient({
+        cache: new InMemoryCache(),
+        link: local,
+      });
+
+      return client
+        .mutate({ mutation })
+        .then(() => client.query({ query }))
+        .then(({ data }: any) => {
+          expect(data.obj.__typename).toEqual('__ClientData');
+          expect(data.obj.field.__typename).toEqual('Field');
+        })
+        .catch(e => console.log(e));
+    });
   });
 });

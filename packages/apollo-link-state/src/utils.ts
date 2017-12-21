@@ -144,6 +144,7 @@ export function addWriteDataToCache(cache: ApolloCacheClient) {
         query: justTypenameQuery,
       });
 
+      // tslint:disable-next-line
       const __typename = typenameResult.__typename || '__ClientData';
 
       // Add a type here to satisfy the inmemory cache
