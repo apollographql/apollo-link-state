@@ -243,6 +243,9 @@ describe('writing data with no query', () => {
         resolvers: {
           Mutation: {
             start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
+              // This will cause a warning to be printed because we don't have
+              // __typename on the obj field. But that's intentional because
+              // that's exactly the situtation we're trying to test...
               cache.writeQuery({
                 query,
                 data: {
@@ -252,8 +255,6 @@ describe('writing data with no query', () => {
                   },
                 },
               });
-
-              console.log(cache.extract());
 
               cache.writeData({
                 id: '$ROOT_QUERY.obj',

@@ -134,21 +134,29 @@ function selectionSetFromObj(obj) {
 export function addWriteDataToCache(cache: ApolloCacheClient) {
   cache.writeData = ({ id, data }: WriteDataArgs) => {
     if (id) {
+      let typenameResult = null;
       // Since we can't use fragments without having a typename in the store,
       // we need to make sure we have one.
       // To avoid overwriting an existing typename, we need to read it out first
       // and generate a fake one if none exists.
-      const typenameResult: any = cache.read({
-        rootId: id,
-        optimistic: false,
-        query: justTypenameQuery,
-      });
+      try {
+        typenameResult = cache.read({
+          rootId: id,
+          optimistic: false,
+          query: justTypenameQuery,
+        });
+      } catch (e) {
+        // Do nothing, since an error just means no typename exists
+      }
 
       // tslint:disable-next-line
-      const __typename = typenameResult.__typename || '__ClientData';
+      const __typename =
+        (typenameResult && typenameResult.__typename) || '__ClientData';
 
       // Add a type here to satisfy the inmemory cache
       const dataToWrite = { __typename, ...data };
+
+      console.log(dataToWrite);
 
       cache.writeFragment({
         id,
