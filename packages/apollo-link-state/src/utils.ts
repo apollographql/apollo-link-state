@@ -60,7 +60,6 @@ export function queryFromPojo(obj: any): DocumentNode {
 }
 
 export function fragmentFromPojo(obj: any, typename?: string): DocumentNode {
-  console.log({ obj });
   const frag: FragmentDefinitionNode = {
     kind: 'FragmentDefinition',
     typeCondition: {
