@@ -7,10 +7,10 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloProvider } from 'react-apollo';
 
 import App from './components/App';
-import resolverMap from './resolvers';
+import resolvers from './resolvers';
 
 const client = new ApolloClient({
-  link: withClientState(resolverMap),
+  link: withClientState({ resolvers }),
   cache: new InMemoryCache(),
 });
 
