@@ -26,11 +26,11 @@ export type WriteData = {
 export type ApolloCacheClient = ApolloCache<any> & WriteData;
 
 export const withClientState = ({ resolvers, defaults, cache }) => {
-  // if (!cache | !resolvers | !defaults) {
-  //   throw new Error(
-  //     `One of the required configuration properties is missing. Please see [DOCS link] for details`,
-  //   );
-  // }
+  if (!resolvers) {
+    throw new Error(
+      `Resolvers are required to initialize the state link. Please see [DOCS link] for details`,
+    );
+  }
 
   if (cache && defaults) {
     if (!cache.writeData) {
