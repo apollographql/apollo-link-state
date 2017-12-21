@@ -59,7 +59,7 @@ export function queryFromPojo(obj: any): DocumentNode {
   return out;
 }
 
-export function fragmentFromPojo(obj: any): DocumentNode {
+export function fragmentFromPojo(obj: any, typename?: string): DocumentNode {
   console.log({ obj });
   const frag: FragmentDefinitionNode = {
     kind: 'FragmentDefinition',
@@ -67,7 +67,7 @@ export function fragmentFromPojo(obj: any): DocumentNode {
       kind: 'NamedType',
       name: {
         kind: 'Name',
-        value: '__FakeType',
+        value: typename || '__FakeType',
       },
     },
     name: {
@@ -134,14 +134,26 @@ function selectionSetFromObj(obj) {
 
 export function addWriteDataToCache(cache: ApolloCacheClient) {
   cache.writeData = ({ id, data }: WriteDataArgs) => {
-    console.log({ data });
     if (id) {
-      cache.writeFragment({
-        fragment: fragmentFromPojo(data),
+      // Since we can't use fragments without having a typename in the store,
+      // we need to make sure we have one.
+      // To avoid overwriting an existing typename, we need to read it out first
+      // and generate a fake one if none exists.
+      const typenameResult: any = cache.read({
+        rootId: id,
+        optimistic: false,
+        query: justTypenameQuery,
+      });
 
-        // Add a type here to satisfy the inmemory cache
-        data: { __typename: '__FakeType', ...data },
+      const __typename = typenameResult.__typename || '__ClientData';
+
+      // Add a type here to satisfy the inmemory cache
+      const dataToWrite = { __typename, ...data };
+
+      cache.writeFragment({
         id,
+        fragment: fragmentFromPojo(dataToWrite, __typename),
+        data: dataToWrite,
       });
     } else {
       cache.writeQuery({
@@ -151,3 +163,32 @@ export function addWriteDataToCache(cache: ApolloCacheClient) {
     }
   };
 }
+
+const justTypenameQuery: DocumentNode = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: null,
+      variableDefinitions: null,
+      directives: [],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            alias: null,
+            name: {
+              kind: 'Name',
+              value: '__typename',
+            },
+            arguments: [],
+            directives: [],
+            selectionSet: null,
+          },
+        ],
+      },
+    },
+  ],
+};
