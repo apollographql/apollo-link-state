@@ -156,8 +156,6 @@ export function addWriteDataToCache(cache: ApolloCacheClient) {
       // Add a type here to satisfy the inmemory cache
       const dataToWrite = { __typename, ...data };
 
-      console.log(dataToWrite);
-
       cache.writeFragment({
         id,
         fragment: fragmentFromPojo(dataToWrite, __typename),
