@@ -78,10 +78,10 @@ export const withClientState = ({ resolvers, defaults, cache }) => {
           const context = operation.getContext();
 
           // Add a writeData method to the cache
-          const cache: ApolloCacheClient = context.cache;
+          const contextCache: ApolloCacheClient = context.cache;
 
-          if (cache && !cache.writeData) {
-            addWriteDataToCache(cache);
+          if (contextCache && !contextCache.writeData) {
+            addWriteDataToCache(contextCache);
           }
 
           graphql(resolver, query, data, context, operation.variables).then(
