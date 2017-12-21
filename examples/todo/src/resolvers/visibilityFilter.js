@@ -6,6 +6,7 @@ const visibilityFilter = {
     Mutation: {
       visibilityFilter: (_, { filter }, { cache }) => {
         cache.writeData({ data: { visibilityFilter: filter } });
+        return null;
       },
     },
   },
