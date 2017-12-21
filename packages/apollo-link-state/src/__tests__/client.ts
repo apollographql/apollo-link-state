@@ -17,7 +17,7 @@ describe('non cache usage', () => {
     `;
 
     const link = new ApolloLink(() => Observable.of({ data: { field: 1 } }));
-    const local = withClientState({ resolvers: {} });
+    const local = withClientState();
 
     const client = new ApolloClient({
       cache: new InMemoryCache(),
@@ -131,6 +131,25 @@ describe('non cache usage', () => {
 });
 
 describe('cache usage', () => {
+  it('still lets you query the cache without passing in a resolver map', () => {
+    const query = gql`
+      {
+        field @client
+      }
+    `;
+
+    const cache = new InMemoryCache();
+    const client = new ApolloClient({
+      cache,
+      link: withClientState(),
+    });
+
+    cache.writeQuery({ query, data: { field: 'yo' } });
+
+    client
+      .query({ query })
+      .then(({ data }) => expect({ ...data }).toEqual({ field: 'yo' }));
+  });
   it('lets you write to the cache with a mutation', () => {
     const query = gql`
       {
