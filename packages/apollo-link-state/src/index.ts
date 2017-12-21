@@ -9,9 +9,9 @@ import { removeClientSetsFromDocument, addWriteDataToCache } from './utils';
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
 export type ClientStateConfig = {
-  cache: ApolloCacheClient;
+  cache?: ApolloCacheClient;
   resolvers: any;
-  defaults: any;
+  defaults?: any;
 };
 
 export type WriteDataArgs = {
@@ -26,7 +26,7 @@ export type WriteData = {
 export type ApolloCacheClient = ApolloCache<any> & WriteData;
 
 export const withClientState = (
-  { resolvers, defaults, cache } = { resolvers: {} },
+  { resolvers, defaults, cache }: ClientStateConfig = { resolvers: {} },
 ) => {
   if (cache && defaults) {
     if (!cache.writeData) {
