@@ -64,6 +64,7 @@ it('strips out the client directive and does not call other links if no more fie
     done();
   }, done.fail);
 });
+
 it('passes a query on to the next link', done => {
   const nextLink = new ApolloLink(operation => {
     expect(operation.getContext()).toEqual({});
