@@ -1,6 +1,8 @@
 # [apollo-link-state](https://www.apollographql.com/docs/link/links/state.html)
 ### Manage your local data with Apollo Client!
 
+[**Docs**](https://www.apollographql.com/docs/link/links/state.html) | [**Announcement Post**](https://dev-blog.apollodata.com/the-future-of-state-management-dd410864cae2)
+
 Managing remote data from an external API is simple with Apollo Client, but
 where do we put all of our data that doesn't fit in that category? Nearly all
 apps need some way to centralize client-side data from user interactions and device APIs.
