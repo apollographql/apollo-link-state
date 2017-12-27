@@ -165,17 +165,17 @@ component will update reactively. Updates to Apollo Client state via `apollo-lin
 
 ```js
 const WrappedComponent = graphql(GET_ARTICLES, {
-  props: ({ data: { networkStatus, articles } }) => {
-    if (data.loading) {
-      return { loading: data.loading };
+  props: ({ data: { networkStatus, articles, loading, error } }) => {
+    if (loading) {
+      return { loading };
     }
 
-    if (data.error) {
-      return { error: data.error };
+    if (error) {
+      return { error };
     }
 
     return {
-      loading: false,
+      loading,
       networkStatus,
       articles,
     };
