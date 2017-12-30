@@ -104,4 +104,67 @@ describe('server and client state', () => {
       client.mutate({ mutation, variables });
     }, 10);
   });
+
+  it('correctly propagates an error from a client-state resolver', async done => {
+    const data = {
+      list: {
+        __typename: 'List',
+        items: [
+          { __typename: 'ListItem', id: 1, name: 'first', isDone: true },
+          { __typename: 'ListItem', id: 2, name: 'second', isDone: false },
+        ],
+      },
+    };
+    // mocked endpoint acting as server data
+    const http = new ApolloLink(() => Observable.of({ data }));
+
+    const local = withClientState({
+      resolvers: {
+        Query: {
+          hasBeenIllegallyTouched: (_, _v, _c) => {
+            throw new Error('Illegal Query Operation Occurred');
+          },
+        },
+
+        Mutation: {
+          touchIllegally: (_, _v, _c) => {
+            throw new Error('Illegal Mutation Operation Occurred');
+          },
+        },
+      },
+    });
+
+    const client = new ApolloClient({
+      link: local.concat(http),
+      cache: new InMemoryCache(),
+    });
+
+    const variables = { id: 1 };
+    const query = gql`
+      query hasBeenIllegallyTouched($id: Int!) {
+        hasBeenIllegallyTouched(id: $id) @client
+      }
+    `;
+    const mutation = gql`
+      mutation SelectItem($id: Int!) {
+        touchIllegally(id: $id) @client
+      }
+    `;
+
+    try {
+      await client.query({ query, variables });
+      done.fail('Should have thrown!');
+    } catch (e) {
+      // Test Passed!
+    }
+
+    try {
+      await client.mutate({ mutation, variables });
+      done.fail('Should have thrown!');
+    } catch (e) {
+      // Test Passed!
+    }
+
+    done();
+  });
 });
