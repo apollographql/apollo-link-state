@@ -29,7 +29,9 @@
   "jest": {
     "transform": {
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-    }
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": ["ts", "tsx", "js", "json"]
   },
   "lint-staged": {
     "*.ts*": [
@@ -43,12 +45,26 @@
     "*.json*": ["prettier --write", "git add"]
   },
   "pre-commit": "lint-staged",
-  "dependencies": {},
+  "dependencies": {
+    "apollo-link": "^1.0.7"
+  },
+  "peerDependencies": {
+    "graphql": "0.11.7 || ^0.12.3"
+  },
   "devDependencies": {
+    "@types/graphql": "0.11.5",
+    "@types/jest": "21.1.5",
+    "@types/node": "^8.0.53",
     "@types/zen-observable": "0.5.3",
+    "apollo-cache-inmemory": "^1.1.4",
+    "apollo-client": "^2.0.4",
+    "apollo-link-http": "1.2.0",
     "bundlesize": "0.15.3",
     "codecov": "3.0.0",
     "danger": "1.2.0",
+    "graphql": "0.11.7",
+    "graphql-tag": "2.6.x",
+    "jest": "21.2.x",
     "lerna": "2.5.1",
     "lint-staged": "5.0.0",
     "pre-commit": "1.2.2",
