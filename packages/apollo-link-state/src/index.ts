@@ -69,6 +69,8 @@ export const withClientState = (
               data: {},
             });
 
+      const observerErrorHandler = observer.error.bind(observer);
+
       const sub = obs.subscribe({
         next: ({ data, errors }) => {
           const context = operation.getContext();
@@ -80,17 +82,17 @@ export const withClientState = (
             addWriteDataToCache(contextCache);
           }
 
-          graphql(resolver, query, data, context, operation.variables).then(
-            nextData => {
+          graphql(resolver, query, data, context, operation.variables)
+            .then(nextData => {
               observer.next({
                 data: nextData,
                 errors,
               });
               observer.complete();
-            },
-          );
+            })
+            .catch(observerErrorHandler);
         },
-        error: observer.error.bind(observer),
+        error: observerErrorHandler,
       });
 
       return () => {
