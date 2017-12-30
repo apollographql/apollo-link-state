@@ -1,4 +1,5 @@
 # [apollo-link-state](https://www.apollographql.com/docs/link/links/state.html)
+
 ### Manage your local data with Apollo Client!
 
 [**Docs**](https://www.apollographql.com/docs/link/links/state.html) | [**Announcement Post**](https://dev-blog.apollodata.com/the-future-of-state-management-dd410864cae2)
@@ -184,3 +185,38 @@ const WrappedComponent = graphql(GET_ARTICLES, {
 ```
 
 For more detailed examples, plus in-depth explanations of resolvers, defaults, and more, please check out our official [docs page](https://www.apollographql.com/docs/link/links/state.html).
+
+<h2 id="local-development">Local Development</h2>
+
+If you're setting up for local development, and you want to integrate a local
+branch of `apollo-link-state` into another application, remember that this
+project has a sub folder: `./packages/apollo-link-state`
+
+To link this in, do:
+
+```shell
+$ cd packages/apollo-link-state
+$ yarn link
+yarn link v1.3.2
+success Registered "apollo-link-state".
+info You can now run `yarn link "apollo-link-state"` in the projects where you want to use this module and it will be used instead.
+✨  Done in 0.08s.
+```
+
+And in your development application do:
+
+```shell
+$ yarn link apollo-link-state
+yarn link v1.3.2
+success Using linked module for "apollo-link-state".
+✨  Done in 0.08s.
+```
+
+Finally, each time you make a change in apollo-link-state, you need to run:
+
+```shell
+$ yarn build; yarn bundle
+[...snipped...]
+```
+
+Now you should be good to go!
