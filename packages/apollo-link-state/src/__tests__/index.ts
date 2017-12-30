@@ -15,6 +15,14 @@ const query = gql`
   }
 `;
 
+const aliasedQuery = gql`
+  query Test {
+    fie: foo @client {
+      bar
+    }
+  }
+`;
+
 const doubleQuery = gql`
   query Double {
     foo @client {
@@ -191,6 +199,25 @@ it('runs resolvers for missing client queries with aliased field', done => {
   });
   execute(client.concat(sample), { query }).subscribe(({ data }) => {
     expect(data).toEqual({ foo: { bar: true }, baz: { foo: true } });
+    done();
+  }, done.fail);
+});
+
+it('runs resolvers for client queries when aliases are in use on the @client-tagged node', done => {
+  const client = withClientState({
+    resolvers: {
+      Query: {
+        foo: () => ({ bar: true }),
+        fie: () => {
+          done.fail(
+            "Called the resolver using the alias' name, instead of the correct resolver name.",
+          );
+        },
+      },
+    },
+  });
+  execute(client, { query: aliasedQuery }).subscribe(({ data }) => {
+    expect(data).toEqual({ fie: { bar: true } });
     done();
   }, done.fail);
 });
