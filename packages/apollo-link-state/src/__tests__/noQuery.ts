@@ -243,9 +243,28 @@ describe('writing data with no query', () => {
         resolvers: {
           Mutation: {
             start: (_, $, { cache }: { cache: ApolloCacheClient }) => {
-              // This will cause a warning to be printed because we don't have
+              // This would cause a warning to be printed because we don't have
               // __typename on the obj field. But that's intentional because
-              // that's exactly the situtation we're trying to test...
+              // that's exactly the situation we're trying to test...
+
+              // Let's swap out console.warn to suppress this one message
+              const suppressString = '__typename';
+              const originalWarn = console.warn;
+              console.warn = (...args: any[]) => {
+                if (
+                  args.find(element => {
+                    if (typeof element === 'string') {
+                      return element.indexOf(suppressString) !== -1;
+                    }
+                    return false;
+                  }) != null
+                ) {
+                  // Found a thing in the args we told it to exclude
+                  return;
+                }
+                originalWarn.apply(console, args);
+              };
+              // Actually call the problematic query
               cache.writeQuery({
                 query,
                 data: {
@@ -255,6 +274,8 @@ describe('writing data with no query', () => {
                   },
                 },
               });
+              // Restore warning logger
+              console.warn = originalWarn;
 
               cache.writeData({
                 id: '$ROOT_QUERY.obj',
