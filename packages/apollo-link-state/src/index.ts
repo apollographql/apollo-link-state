@@ -23,17 +23,31 @@ export type WriteData = {
   writeData: ({ id, data }: WriteDataArgs) => void;
 };
 
-export type ApolloCacheClient = ApolloCache<any> & WriteData;
+export type ApolloCacheClient_Writeable = ApolloCache<any> & WriteData;
+export type ApolloCacheClient = ApolloCache<any> | ApolloCacheClient_Writeable;
+
+const cacheClientIsWriteable = (
+  cache: any,
+): cache is ApolloCache<any> & WriteData => {
+  if (cache.writeData != null) {
+    return true;
+  }
+  return false;
+};
 
 export const withClientState = (
   { resolvers, defaults, cache }: ClientStateConfig = { resolvers: {} },
 ) => {
   if (cache && defaults) {
-    if (!cache.writeData) {
+    let writeableCache: ApolloCacheClient_Writeable;
+    if (!cacheClientIsWriteable(cache)) {
       addWriteDataToCache(cache);
+      writeableCache = cache as ApolloCacheClient_Writeable;
+    } else {
+      writeableCache = cache;
     }
 
-    cache.writeData({ data: defaults });
+    writeableCache.writeData({ data: defaults });
   }
 
   return new ApolloLink((operation: Operation, forward: NextLink) => {
@@ -76,7 +90,7 @@ export const withClientState = (
           // Add a writeData method to the cache
           const contextCache: ApolloCacheClient = context.cache;
 
-          if (contextCache && !contextCache.writeData) {
+          if (contextCache && !cacheClientIsWriteable(contextCache)) {
             addWriteDataToCache(contextCache);
           }
 

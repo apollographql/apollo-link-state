@@ -5,6 +5,7 @@ import { print } from 'graphql/language/printer';
 import { parse } from 'graphql/language/parser';
 
 import { withClientState } from '../';
+import { InMemoryCache } from 'apollo-cache-inmemory';
 
 // const sleep = ms => new Promise(s => setTimeout(s, ms));
 const query = gql`
@@ -51,6 +52,14 @@ const resolvers = {
     foo: () => ({ bar: true }),
   },
 };
+
+//#region Configuration Typings Test
+// No other unit tests were configuring a link like the docs were, and that lead
+// to an issue when calling code was using TypeScript strictly. The contained
+// line of code was sufficient to expose this error.
+withClientState({ cache: new InMemoryCache(), resolvers });
+// This functions as a "Test" that the TypeScript types work as intended.
+//#endregion Configuration Typings Test
 
 it('strips out the client directive and does not call other links if no more fields', done => {
   const nextLink = new ApolloLink(operation => {
