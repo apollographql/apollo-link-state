@@ -156,6 +156,9 @@ describe('server and client state', () => {
       done.fail('Should have thrown!');
     } catch (e) {
       // Test Passed!
+      expect(() => {
+        throw e;
+      }).toThrowErrorMatchingSnapshot();
     }
 
     try {
@@ -163,6 +166,9 @@ describe('server and client state', () => {
       done.fail('Should have thrown!');
     } catch (e) {
       // Test Passed!
+      expect(() => {
+        throw e;
+      }).toThrowErrorMatchingSnapshot();
     }
 
     done();
