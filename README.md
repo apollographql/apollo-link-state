@@ -190,33 +190,24 @@ For more detailed examples, plus in-depth explanations of resolvers, defaults, a
 
 If you're setting up for local development, and you want to integrate a local
 branch of `apollo-link-state` into another application, remember that this
-project has a sub folder: `./packages/apollo-link-state`
+project is a Lerna monorepo: `./packages/apollo-link-state`
 
 To link this in, do:
 
 ```shell
-$ cd packages/apollo-link-state
-$ yarn link
-yarn link v1.3.2
-success Registered "apollo-link-state".
-info You can now run `yarn link "apollo-link-state"` in the projects where you want to use this module and it will be used instead.
-✨  Done in 0.08s.
+cd packages/apollo-link-state && yarn link
 ```
 
 And in your development application do:
 
 ```shell
-$ yarn link apollo-link-state
-yarn link v1.3.2
-success Using linked module for "apollo-link-state".
-✨  Done in 0.08s.
+yarn link apollo-link-state
 ```
 
 Finally, each time you make a change in apollo-link-state, you need to run:
 
 ```shell
-$ yarn build; yarn bundle
-[...snipped...]
+yarn build && yarn bundle
 ```
 
 Now you should be good to go!
