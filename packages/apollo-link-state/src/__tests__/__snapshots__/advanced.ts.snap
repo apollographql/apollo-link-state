@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[
+  `server and client state correctly propagates an error from a client-state resolver 1`
+] = `"Network error: Illegal Query Operation Occurred"`;
+
+exports[
+  `server and client state correctly propagates an error from a client-state resolver 2`
+] = `"Network error: Illegal Mutation Operation Occurred"`;
