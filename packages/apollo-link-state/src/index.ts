@@ -54,7 +54,7 @@ export const withClientState = (
 
       // Look for the field in the custom resolver map
       const resolverMap = resolvers[(rootValue as any).__typename || type];
-      const resolve = resolverMap[fieldName] || resolverMap[info.resultKey];
+      const resolve = resolverMap[fieldName];
       if (resolve) return resolve(rootValue, args, context, info);
     };
 
