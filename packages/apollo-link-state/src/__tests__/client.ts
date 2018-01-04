@@ -307,7 +307,9 @@ describe('cache usage', () => {
     });
 
     return client.query({ query }).then(({ data }) => {
-      expect({ ...data }).toEqual({ fie: { bar: 'yo', __typename: 'Foo' } });
+      expect({ ...data }).toMatchObject({
+        fie: { bar: 'yo', __typename: 'Foo' },
+      });
     });
   });
 });
