@@ -280,6 +280,36 @@ describe('cache usage', () => {
         expect({ ...data }).toEqual({ field: '1234' });
       });
   });
+
+  it('runs default resolvers for aliased fields tagged with @client', () => {
+    const query = gql`
+      {
+        fie: foo @client {
+          bar
+        }
+      }
+    `;
+
+    const cache = new InMemoryCache();
+
+    const client = new ApolloClient({
+      cache,
+      link: withClientState({
+        cache,
+        resolvers: {},
+        defaults: {
+          foo: {
+            bar: 'yo',
+            __typename: 'Foo',
+          },
+        },
+      }),
+    });
+
+    return client.query({ query }).then(({ data }) => {
+      expect({ ...data }).toEqual({ fie: { bar: 'yo', __typename: 'Foo' } });
+    });
+  });
 });
 
 describe('sample usage', () => {

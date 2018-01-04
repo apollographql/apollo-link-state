@@ -49,7 +49,7 @@ export const withClientState = (
       ) || 'Query';
 
     const resolver = (fieldName, rootValue = {}, args, context, info) => {
-      const fieldValue = rootValue[info.resultKey || fieldName];
+      const fieldValue = rootValue[fieldName];
       if (fieldValue !== undefined) return fieldValue;
 
       // Look for the field in the custom resolver map
