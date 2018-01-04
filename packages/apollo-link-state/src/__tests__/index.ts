@@ -192,7 +192,7 @@ it('runs resolvers for missing client queries with aliased field', done => {
     }
   `;
   const sample = new ApolloLink(() =>
-    Observable.of({ data: { baz: { foo: true } } }),
+    Observable.of({ data: { bar: { foo: true } } }),
   );
   const client = withClientState({
     resolvers,
