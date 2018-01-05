@@ -4,6 +4,8 @@
 - Fix propogating errors thrown in resolvers [#148](https://github.com/apollographql/apollo-link-state/pull/148)
 - Support aliases in @client queries [#150](https://github.com/apollographql/apollo-link-state/pull/150)
 - Fix aliases for default resolvers for @client queries [#162](https://github.com/apollographql/apollo-link-state/pull/162)
+- Exposed writeDefaults method on the state link for `client.onResetStore` [#164](https://github.com/apollographql/apollo-link-state/pull/164)
+- Removed writeData monkey-patching [#164](https://github.com/apollographql/apollo-link-state/pull/164)
 
 ### 0.3.0
 - BREAKING: Changed `withClientState` API to take a config object with `resolvers`, `defaults`, and `cache` properties: [#132](https://github.com/apollographql/apollo-link-state/pull/132)
