@@ -8,15 +8,6 @@ describe('initialization', () => {
   const resolvers = { Query: { foo: () => ({ bar: true }) } };
   const defaults = { foo: { bar: false, __typename: 'Bar' } };
 
-  it('attaches writeData to the cache if you pass in defaults', () => {
-    const cache = {
-      writeQuery: jest.fn(),
-    };
-
-    withClientState({ cache, resolvers, defaults });
-    expect('cache.writeData').toBeDefined();
-  });
-
   it('writes defaults to the cache upon initialization', () => {
     const cache = new InMemoryCache();
 
