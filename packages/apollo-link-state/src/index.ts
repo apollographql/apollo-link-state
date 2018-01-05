@@ -28,11 +28,16 @@ export const withClientState = (
   }
 
   return new class StateLink extends ApolloLink {
-    writeDefaults() {
-      cache && cache.writeData({ data: defaults });
+    public writeDefaults() {
+      if (cache && defaults) {
+        cache.writeData({ data: defaults });
+      }
     }
 
-    request(operation: Operation, forward: NextLink): Observable<FetchResult> {
+    public request(
+      operation: Operation,
+      forward: NextLink,
+    ): Observable<FetchResult> {
       const isClient = hasDirectives(['client'], operation.query);
 
       if (!isClient) return forward(operation);
