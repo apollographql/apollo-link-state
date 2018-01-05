@@ -13,7 +13,11 @@ import {
   removeDirectivesFromDocument,
 } from 'apollo-utilities';
 
-import { ApolloCacheClient, WriteDataArgs } from './';
+import {
+  ApolloCacheClient,
+  ApolloCacheClient_Writeable,
+  WriteDataArgs,
+} from './';
 
 const connectionRemoveConfig = {
   test: (directive: DirectiveNode) => directive.name.value === 'client',
@@ -132,7 +136,10 @@ function selectionSetFromObj(obj) {
 }
 
 export function addWriteDataToCache(cache: ApolloCacheClient) {
-  cache.writeData = ({ id, data }: WriteDataArgs) => {
+  (cache as ApolloCacheClient_Writeable).writeData = ({
+    id,
+    data,
+  }: WriteDataArgs) => {
     if (id) {
       let typenameResult = null;
       // Since we can't use fragments without having a typename in the store,
