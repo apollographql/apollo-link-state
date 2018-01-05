@@ -1,4 +1,10 @@
-import { ApolloLink, Observable, Operation, NextLink } from 'apollo-link';
+import {
+  ApolloLink,
+  Observable,
+  Operation,
+  NextLink,
+  FetchResult,
+} from 'apollo-link';
 import { ApolloCache } from 'apollo-cache';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
@@ -21,59 +27,65 @@ export const withClientState = (
     cache.writeData({ data: defaults });
   }
 
-  return new ApolloLink((operation: Operation, forward: NextLink) => {
-    const isClient = hasDirectives(['client'], operation.query);
+  return new class StateLink extends ApolloLink {
+    writeDefaults() {
+      cache && cache.writeData({ data: defaults });
+    }
 
-    if (!isClient) return forward(operation);
+    request(operation: Operation, forward: NextLink): Observable<FetchResult> {
+      const isClient = hasDirectives(['client'], operation.query);
 
-    const server = removeClientSetsFromDocument(operation.query);
-    const { query } = operation;
-    const type =
-      capitalizeFirstLetter(
-        (getMainDefinition(query) || ({} as any)).operation,
-      ) || 'Query';
+      if (!isClient) return forward(operation);
 
-    const resolver = (fieldName, rootValue = {}, args, context, info) => {
-      const fieldValue = rootValue[fieldName];
-      if (fieldValue !== undefined) return fieldValue;
+      const server = removeClientSetsFromDocument(operation.query);
+      const { query } = operation;
+      const type =
+        capitalizeFirstLetter(
+          (getMainDefinition(query) || ({} as any)).operation,
+        ) || 'Query';
 
-      // Look for the field in the custom resolver map
-      const resolverMap = resolvers[(rootValue as any).__typename || type];
-      const resolve = resolverMap[fieldName];
-      if (resolve) return resolve(rootValue, args, context, info);
-    };
+      const resolver = (fieldName, rootValue = {}, args, context, info) => {
+        const fieldValue = rootValue[fieldName];
+        if (fieldValue !== undefined) return fieldValue;
 
-    return new Observable(observer => {
-      if (server) operation.query = server;
-      const obs =
-        server && forward
-          ? forward(operation)
-          : Observable.of({
-              data: {},
-            });
-
-      const observerErrorHandler = observer.error.bind(observer);
-
-      const sub = obs.subscribe({
-        next: ({ data, errors }) => {
-          const context = operation.getContext();
-
-          graphql(resolver, query, data, context, operation.variables)
-            .then(nextData => {
-              observer.next({
-                data: nextData,
-                errors,
-              });
-              observer.complete();
-            })
-            .catch(observerErrorHandler);
-        },
-        error: observerErrorHandler,
-      });
-
-      return () => {
-        if (sub) sub.unsubscribe();
+        // Look for the field in the custom resolver map
+        const resolverMap = resolvers[(rootValue as any).__typename || type];
+        const resolve = resolverMap[fieldName];
+        if (resolve) return resolve(rootValue, args, context, info);
       };
-    });
-  });
+
+      return new Observable(observer => {
+        if (server) operation.query = server;
+        const obs =
+          server && forward
+            ? forward(operation)
+            : Observable.of({
+                data: {},
+              });
+
+        const observerErrorHandler = observer.error.bind(observer);
+
+        const sub = obs.subscribe({
+          next: ({ data, errors }) => {
+            const context = operation.getContext();
+
+            graphql(resolver, query, data, context, operation.variables)
+              .then(nextData => {
+                observer.next({
+                  data: nextData,
+                  errors,
+                });
+                observer.complete();
+              })
+              .catch(observerErrorHandler);
+          },
+          error: observerErrorHandler,
+        });
+
+        return () => {
+          if (sub) sub.unsubscribe();
+        };
+      });
+    }
+  }();
 };

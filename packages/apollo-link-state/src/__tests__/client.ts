@@ -312,6 +312,61 @@ describe('cache usage', () => {
       });
     });
   });
+
+  it('writeDefaults lets you write defaults to the cache after the store is reset', async () => {
+    const mutation = gql`
+      mutation foo {
+        foo @client
+      }
+    `;
+
+    const query = gql`
+      {
+        foo @client
+      }
+    `;
+
+    const cache = new InMemoryCache();
+
+    const stateLink = withClientState({
+      defaults: {
+        foo: 'bar',
+      },
+      resolvers: {
+        Mutation: {
+          foo: (_, $, { cache }) => {
+            cache.writeData({ data: { foo: 'woo' } });
+            return null;
+          },
+        },
+      },
+      cache,
+    });
+
+    const client = new ApolloClient({
+      cache,
+      link: stateLink,
+    });
+
+    client.onResetStore(stateLink.writeDefaults);
+
+    client.query({ query }).then(({ data }) => {
+      expect({ ...data }).toEqual({ foo: 'bar' });
+    });
+
+    client
+      .mutate({ mutation })
+      .then(() => client.query({ query }))
+      .then(({ data }) => {
+        expect({ ...data }).toEqual({ foo: 'woo' });
+      });
+
+    await client.resetStore();
+
+    client.query({ query }).then(({ data }) => {
+      expect({ ...data }).toEqual({ foo: 'bar' });
+    });
+  });
 });
 
 describe('sample usage', () => {
