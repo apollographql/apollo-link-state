@@ -21,8 +21,9 @@ export type ClientStateConfig = {
 };
 
 export const withClientState = (
-  { resolvers, defaults, cache }: ClientStateConfig = { resolvers: {} },
+  clientStateConfig: ClientStateConfig = { resolvers: {} },
 ) => {
+  const { resolvers, defaults, cache } = clientStateConfig;
   if (cache && defaults) {
     cache.writeData({ data: defaults });
   }
