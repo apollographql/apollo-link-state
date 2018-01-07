@@ -30,7 +30,7 @@ npm install apollo-link-state --save
 ```
 
 The rest of the instructions assume that you have already [set up Apollo
-Client](/docs/react/basics/setup.html#installation) in your application. After
+Client](https://github.com/apollographql/apollo-client#installation) in your application. After
 you install the package, you can create your state link by calling
 `withClientState` and passing in a resolver map. A resolver map describes how to
 retrieve and update your local data.
