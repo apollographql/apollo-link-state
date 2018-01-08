@@ -1,5 +1,8 @@
 # Change log
 
+### vNEXT
+- Change config destructuring to support TS strict mode [#165](https://github.com/apollographql/apollo-link-state/pull/165)
+
 ### 0.3.1
 - Fix propogating errors thrown in resolvers [#148](https://github.com/apollographql/apollo-link-state/pull/148)
 - Support aliases in @client queries [#150](https://github.com/apollographql/apollo-link-state/pull/150)
