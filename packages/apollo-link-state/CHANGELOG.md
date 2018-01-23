@@ -1,7 +1,8 @@
 # Change log
 
-### vNEXT
+### 0.4.0-beta.0
 - Change config destructuring to support TS strict mode [#165](https://github.com/apollographql/apollo-link-state/pull/165)
+- Add `typeDefs` config property for client-side schemas [#180](https://github.com/apollographql/apollo-link-state/pull/180)
 
 ### 0.3.1
 - Fix propogating errors thrown in resolvers [#148](https://github.com/apollographql/apollo-link-state/pull/148)
