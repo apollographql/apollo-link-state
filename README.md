@@ -50,9 +50,13 @@ const stateLink = withClientState({
     Mutation: {
       updateNetworkStatus: (_, { isConnected }, { cache }) => {
         const data = {
-          networkStatus: { isConnected },
+          networkStatus: {
+            __typename: 'NetworkStatus',
+            isConnected
+          },
         };
         cache.writeData({ data });
+        return data.networkStatus
       },
     },
   }
