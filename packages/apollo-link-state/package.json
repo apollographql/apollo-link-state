@@ -1,6 +1,6 @@
 {
   "name": "apollo-link-state",
-  "version": "0.3.1",
+  "version": "0.4.0-beta.0",
   "description": "An easy way to manage local state with Apollo Link",
   "author": "James Baxley <james@meteor.com>",
   "license": "MIT",
@@ -10,12 +10,12 @@
   "typings": "./lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/apollographql/apollo-link.git"
+    "url": "git+https://github.com/apollographql/apollo-link-state.git"
   },
   "bugs": {
-    "url": "https://github.com/apollographql/apollo-link/issues"
+    "url": "https://github.com/apollographql/apollo-link-state/issues"
   },
-  "homepage": "https://github.com/apollographql/apollo-link#readme",
+  "homepage": "https://github.com/apollographql/apollo-link-state#readme",
   "scripts": {
     "build:browser":
       "browserify ./lib/bundle.umd.js -o=./lib/bundle.js --i apollo-link --i apollo-utilities --i graphql-anywhere && npm run minify:browser",
