@@ -1,7 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`passes a query on to the next link 1`] = `
-Object {
-  "directives": "directive @client on FIELD",
-}
-`;
+exports[`passes a query on to the next link 1`] = `Object {}`;

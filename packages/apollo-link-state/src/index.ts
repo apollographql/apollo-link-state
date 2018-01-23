@@ -29,6 +29,8 @@ export const withClientState = (
     cache.writeData({ data: defaults });
   }
 
+  let addedSchemaToContext = false;
+
   return new class StateLink extends ApolloLink {
     public writeDefaults() {
       if (cache && defaults) {
@@ -36,32 +38,22 @@ export const withClientState = (
       }
     }
 
-    public concatenateTypeDefs(typeDefs: string[]): string {
-      return typeDefs.map(typeDef => typeDef.trim()).join('\n');
-    }
-
     public request(
       operation: Operation,
       forward: NextLink,
     ): Observable<FetchResult> {
-      const context = operation.getContext();
-      if (!context.directives) {
-        operation.setContext({ directives: 'directive @client on FIELD' });
-      } else if (context.directives.indexOf('@client') === -1) {
-        operation.setContext({
-          directives: this.concatenateTypeDefs([
-            context.directives,
-            'directive @client on FIELD',
-          ]),
-        });
-      }
-
-      if (typeDefs && !context.definition) {
+      if (typeDefs && !addedSchemaToContext) {
+        const directives = 'directive @client on FIELD';
         const definition =
           typeof typeDefs === 'string'
             ? typeDefs
-            : this.concatenateTypeDefs(typeDefs);
-        operation.setContext({ definition });
+            : typeDefs.map(typeDef => typeDef.trim()).join('\n');
+
+        operation.setContext(({ schemas = [] }) => ({
+          schemas: schemas.concat([{ definition, directives }]),
+        }));
+
+        addedSchemaToContext = true;
       }
 
       const isClient = hasDirectives(['client'], operation.query);

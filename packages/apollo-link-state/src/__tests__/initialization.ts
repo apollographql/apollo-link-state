@@ -63,8 +63,8 @@ describe('initialization', () => {
 
   it('adds a schema string in SDL format to the context as definition if typeDefs are passed in', done => {
     const nextLink = new ApolloLink(operation => {
-      const { definition } = operation.getContext();
-      expect(definition).toMatchSnapshot();
+      const { schemas } = operation.getContext();
+      expect(schemas).toMatchSnapshot();
       return Observable.of({
         data: { foo: { bar: true, __typename: 'Bar' } },
       });
@@ -86,8 +86,8 @@ describe('initialization', () => {
     `;
 
     const nextLink = new ApolloLink(operation => {
-      const { definition } = operation.getContext();
-      expect(definition).toMatchSnapshot();
+      const { schemas } = operation.getContext();
+      expect(schemas).toMatchSnapshot();
       return Observable.of({
         data: { foo: { bar: true, __typename: 'Bar' } },
       });
@@ -100,40 +100,6 @@ describe('initialization', () => {
     });
 
     execute(client.concat(nextLink), {
-      query: remoteQuery,
-    }).subscribe(() => done(), done.fail);
-  });
-
-  it('adds the @client directive to the context', done => {
-    const nextLink = new ApolloLink(operation => {
-      expect(operation.getContext()).toMatchSnapshot();
-      return Observable.of({ data: { foo: { bar: true, __typename: 'Bar' } } });
-    });
-
-    const client = withClientState({ resolvers, defaults });
-
-    execute(client.concat(nextLink), {
-      query: remoteQuery,
-    }).subscribe(() => done(), done.fail);
-  });
-
-  it('does not step on existing directives on the context', done => {
-    const restLink = new ApolloLink((operation, forward) => {
-      operation.setContext({
-        directives: 'directive @rest on FIELD',
-      });
-
-      return forward(operation);
-    });
-
-    const nextLink = new ApolloLink(operation => {
-      expect(operation.getContext()).toMatchSnapshot();
-      return Observable.of({ data: { foo: { bar: true, __typename: 'Bar' } } });
-    });
-
-    const client = withClientState({ resolvers, defaults });
-
-    execute(ApolloLink.from([restLink, client, nextLink]), {
       query: remoteQuery,
     }).subscribe(() => done(), done.fail);
   });
