@@ -75,7 +75,7 @@ it('strips out the client directive and does not call other links if no more fie
 
 it('passes a query on to the next link', done => {
   const nextLink = new ApolloLink(operation => {
-    expect(operation.getContext()).toEqual({});
+    expect(operation.getContext()).toMatchSnapshot();
     expect(print(operation.query)).toEqual(
       print(gql`
         query Mixed {

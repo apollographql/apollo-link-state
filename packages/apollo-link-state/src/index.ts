@@ -18,12 +18,13 @@ export type ClientStateConfig = {
   cache?: ApolloCache<any>;
   resolvers: any;
   defaults?: any;
+  typeDefs?: string | string[];
 };
 
 export const withClientState = (
   clientStateConfig: ClientStateConfig = { resolvers: {} },
 ) => {
-  const { resolvers, defaults, cache } = clientStateConfig;
+  const { resolvers, defaults, cache, typeDefs } = clientStateConfig;
   if (cache && defaults) {
     cache.writeData({ data: defaults });
   }
@@ -35,10 +36,34 @@ export const withClientState = (
       }
     }
 
+    public concatenateTypeDefs(typeDefs: string[]): string {
+      return typeDefs.map(typeDef => typeDef.trim()).join('\n');
+    }
+
     public request(
       operation: Operation,
       forward: NextLink,
     ): Observable<FetchResult> {
+      const context = operation.getContext();
+      if (!context.directives) {
+        operation.setContext({ directives: 'directive @client on FIELD' });
+      } else if (context.directives.indexOf('@client') === -1) {
+        operation.setContext({
+          directives: this.concatenateTypeDefs([
+            context.directives,
+            'directive @client on FIELD',
+          ]),
+        });
+      }
+
+      if (typeDefs && !context.definition) {
+        const definition =
+          typeof typeDefs === 'string'
+            ? typeDefs
+            : this.concatenateTypeDefs(typeDefs);
+        operation.setContext({ definition });
+      }
+
       const isClient = hasDirectives(['client'], operation.query);
 
       if (!isClient) return forward(operation);
