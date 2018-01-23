@@ -1,5 +1,47 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[
+  `initialization adds a schema string in SDL format to the context as definition if typeDefs are passed in 1`
+] = `
+Array [
+  Object {
+    "definition": "
+    type Todo {
+      id: String
+      message: String!
+    }
+
+    type Query {
+      todo(id: String!): Todo
+    }
+  ",
+    "directives": "directive @client on FIELD",
+  },
+]
+`;
+
+exports[
+  `initialization concatenates schema strings if typeDefs are passed in as an array 1`
+] = `
+Array [
+  Object {
+    "definition": "type Todo {
+      id: String
+      message: String!
+    }
+
+    type Query {
+      todo(id: String!): Todo
+    }
+type Foo {
+        foo: String!
+        bar: String
+      }",
+    "directives": "directive @client on FIELD",
+  },
+]
+`;
+
 exports[`initialization writes defaults to the cache upon initialization 1`] = `
 Object {
   "$ROOT_QUERY.foo": Object {

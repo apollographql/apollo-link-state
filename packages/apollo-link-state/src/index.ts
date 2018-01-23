@@ -18,15 +18,18 @@ export type ClientStateConfig = {
   cache?: ApolloCache<any>;
   resolvers: any;
   defaults?: any;
+  typeDefs?: string | string[];
 };
 
 export const withClientState = (
   clientStateConfig: ClientStateConfig = { resolvers: {} },
 ) => {
-  const { resolvers, defaults, cache } = clientStateConfig;
+  const { resolvers, defaults, cache, typeDefs } = clientStateConfig;
   if (cache && defaults) {
     cache.writeData({ data: defaults });
   }
+
+  let addedSchemaToContext = false;
 
   return new class StateLink extends ApolloLink {
     public writeDefaults() {
@@ -39,6 +42,20 @@ export const withClientState = (
       operation: Operation,
       forward: NextLink,
     ): Observable<FetchResult> {
+      if (typeDefs && !addedSchemaToContext) {
+        const directives = 'directive @client on FIELD';
+        const definition =
+          typeof typeDefs === 'string'
+            ? typeDefs
+            : typeDefs.map(typeDef => typeDef.trim()).join('\n');
+
+        operation.setContext(({ schemas = [] }) => ({
+          schemas: schemas.concat([{ definition, directives }]),
+        }));
+
+        addedSchemaToContext = true;
+      }
+
       const isClient = hasDirectives(['client'], operation.query);
 
       if (!isClient) return forward(operation);
