@@ -56,7 +56,7 @@ const stateLink = withClientState({
           },
         };
         cache.writeData({ data });
-        return data.networkStatus
+        return null
       },
     },
   }
