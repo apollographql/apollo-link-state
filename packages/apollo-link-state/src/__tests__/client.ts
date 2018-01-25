@@ -5,6 +5,7 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 
 import { print } from 'graphql/language/printer';
 import { parse } from 'graphql/language/parser';
+import { introspectionQuery } from 'graphql/utilities';
 
 import { withClientState } from '../';
 
@@ -27,6 +28,26 @@ describe('non cache usage', () => {
     return client.query({ query }).then(({ data }) => {
       expect({ ...data }).toEqual({ field: 1 });
     });
+  });
+  it('works for an introspection query', () => {
+    const query = gql`${introspectionQuery}`;
+
+    const link = new ApolloLink(() =>
+      Observable.of({ errors: [{ message: 'no introspection result found' }] }),
+    );
+    const local = withClientState();
+
+    const client = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: local.concat(link),
+    });
+
+    return client
+      .query({ query })
+      .then(() => {
+        throw new Error('should not call');
+      })
+      .catch(error => expect(error.message).toMatch(/no introspection/));
   });
   it('lets you set default values from resolvers', () => {
     const query = gql`

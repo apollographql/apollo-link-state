@@ -25,6 +25,12 @@ const typeDefs = `
     toggleTodo(id: Int!): Todo
     visibilityFilter(filter: String!): String
   }
+
+  type Query {
+    visibilityFilter: String
+    todos: [Todo]
+  }
+  
 `;
 
 const client = new ApolloClient({
