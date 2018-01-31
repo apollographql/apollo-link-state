@@ -71,6 +71,8 @@ if you are using persisted queries. Then, pass your link chain to the Apollo
 Client constructor.
 
 ```js
+import {ApolloLink} from 'apollo-link';
+
 const client = new ApolloClient({
   cache,
   link: ApolloLink.from([
