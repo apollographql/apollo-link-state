@@ -78,7 +78,6 @@
     "moduleFileExtensions": ["ts", "tsx", "js", "json"]
   },
   "dependencies": {
-    "apollo-utilities": "^1.0.1",
     "graphql-anywhere": "^4.1.0-alpha.0"
   },
   "lint-staged": {
