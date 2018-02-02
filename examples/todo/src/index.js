@@ -12,9 +12,28 @@ import visibilityFilter from './resolvers/visibilityFilter';
 
 const cache = new InMemoryCache();
 
+const typeDefs = `
+  type Todo {
+    id: Int!
+    text: String!
+    completed: Boolean!
+  }
+
+  type Mutation {
+    addTodo(text: String!): Todo
+    toggleTodo(id: Int!): Todo
+    visibilityFilter(filter: String!): String
+  }
+
+  type Query {
+    visibilityFilter: String
+    todos: [Todo]
+  }
+`;
+
 const client = new ApolloClient({
   cache,
-  link: withClientState({ ...merge(todos, visibilityFilter), cache }),
+  link: withClientState({ ...merge(todos, visibilityFilter), cache, typeDefs }),
 });
 
 render(
