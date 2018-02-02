@@ -38,7 +38,7 @@ export const withClientState = (
 
     public request(
       operation: Operation,
-      forward: NextLink,
+      forward: NextLink = () => Observable.of({ data: {} }),
     ): Observable<FetchResult> {
       if (typeDefs) {
         const directives = 'directive @client on FIELD';
