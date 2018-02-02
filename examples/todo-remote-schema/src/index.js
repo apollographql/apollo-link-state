@@ -26,17 +26,10 @@ const typeDefs = `
     visibilityFilter(filter: String!): String
   }
 
-<<<<<<< HEAD
   type Query {
     visibilityFilter: String
     todos: [Todo]
   }
-  
-=======
-  schema {
-    mutation: Mutation
-  }
->>>>>>> Add mutation
 `;
 
 const client = new ApolloClient({
