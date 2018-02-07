@@ -1,4 +1,10 @@
-import { checkDocument, cloneDeep } from 'apollo-utilities';
+import {
+  checkDocument,
+  cloneDeep,
+  getOperationDefinitionOrDie,
+  getFragmentDefinitions,
+  createFragmentMap,
+} from 'apollo-utilities';
 
 function hasDirectivesInSelectionSet(directives, selectionSet) {
   if (!selectionSet.selections) {
@@ -14,8 +20,12 @@ function hasDirectivesInSelection(directives, selection) {
   if (!selection.directives) {
     return false;
   }
-  const matchedDirectives = directives.filter(directive => {
-    return selection.directives.some(d => d.name.value === directive.name);
+  const matchedDirectives = selection.directives.filter(directive => {
+    return directives.some(dir => {
+      if (dir.name && dir.name === directive.name.value) return true;
+      if (dir.test && dir.test(directive)) return true;
+      return false;
+    });
   });
   return matchedDirectives.length > 0;
 }
@@ -60,5 +70,26 @@ export function getDirectivesFromDocument(directives, doc) {
     }
     return definition;
   });
-  return docClone;
+
+  const operation = getOperationDefinitionOrDie(docClone);
+  const fragments = createFragmentMap(getFragmentDefinitions(docClone));
+
+  const isNotEmpty = (
+    op: OperationDefinitionNode | FragmentDefinitionNode,
+  ): Boolean =>
+    // keep selections that are still valid
+    op.selectionSet.selections.filter(
+      selectionSet =>
+        // anything that doesn't match the compound filter is okay
+        !// not an empty array
+        (
+          selectionSet &&
+          // look into fragments to verify they should stay
+          selectionSet.kind === 'FragmentSpread' &&
+          // see if the fragment in the map is valid (recursively)
+          !isNotEmpty(fragments[selectionSet.name.value])
+        ),
+    ).length > 0;
+
+  return isNotEmpty(operation) ? docClone : null;
 }
