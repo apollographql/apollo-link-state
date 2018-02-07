@@ -5,6 +5,7 @@ import {
   getFragmentDefinitions,
   createFragmentMap,
 } from 'apollo-utilities';
+import { FieldNode } from 'graphql';
 
 function hasDirectivesInSelectionSet(directives, selectionSet) {
   if (!selectionSet.selections) {
@@ -17,6 +18,10 @@ function hasDirectivesInSelectionSet(directives, selectionSet) {
 }
 
 function hasDirectivesInSelection(directives, selection) {
+  if (selection.kind !== 'Field' || !(selection as FieldNode)) {
+    return true;
+  }
+
   if (!selection.directives) {
     return false;
   }

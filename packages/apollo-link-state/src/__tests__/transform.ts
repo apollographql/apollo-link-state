@@ -1,6 +1,10 @@
 import { print } from 'graphql/language/printer';
 import gql from 'graphql-tag';
 import { getDirectivesFromDocument } from '../transform';
+import { disableFragmentWarnings } from 'graphql-tag';
+
+// Turn off warnings for repeated fragment names
+disableFragmentWarnings();
 
 describe('getDirectivesFromDocument', () => {
   it('should get query with fields of storage directive ', () => {
@@ -170,5 +174,134 @@ describe('getDirectivesFromDocument', () => {
     `;
     const doc = getDirectivesFromDocument([{ name: 'client' }], query);
     expect(print(doc)).toBe(null);
+  });
+
+  it('should get query with client fields in fragment', function() {
+    const query = gql`
+      query Simple {
+        ...fragmentSpread
+      }
+
+      fragment fragmentSpread on Thing {
+        field @client
+        other
+      }
+    `;
+    const expected = gql`
+      query Simple {
+        ...fragmentSpread
+      }
+
+      fragment fragmentSpread on Thing {
+        field @client
+      }
+    `;
+    const doc = getDirectivesFromDocument([{ name: 'client' }], query);
+    expect(print(doc)).toBe(print(expected));
+  });
+
+  it('should get query with client fields in fragment with nested fields', function() {
+    const query = gql`
+      query Simple {
+        ...fragmentSpread
+      }
+
+      fragment fragmentSpread on Thing {
+        user {
+          firstName @client
+          lastName
+        }
+      }
+    `;
+    const expected = gql`
+      query Simple {
+        ...fragmentSpread
+      }
+
+      fragment fragmentSpread on Thing {
+        user {
+          firstName @client
+        }
+      }
+    `;
+    const doc = getDirectivesFromDocument([{ name: 'client' }], query);
+    expect(print(doc)).toBe(print(expected));
+  });
+
+  it('should get query with client fields in multiple fragments', function() {
+    const query = gql`
+      query Simple {
+        ...fragmentSpread
+        ...anotherFragmentSpread
+      }
+
+      fragment fragmentSpread on Thing {
+        field @client
+        other
+      }
+
+      fragment anotherFragmentSpread on AnotherThing {
+        user @client
+        product
+      }
+    `;
+    const expected = gql`
+      query Simple {
+        ...fragmentSpread
+        ...anotherFragmentSpread
+      }
+
+      fragment fragmentSpread on Thing {
+        field @client
+      }
+
+      fragment anotherFragmentSpread on AnotherThing {
+        user @client
+      }
+    `;
+    const doc = getDirectivesFromDocument([{ name: 'client' }], query);
+    expect(print(doc)).toBe(print(expected));
+  });
+
+  it("should return null if fragment didn't have client fields", function() {
+    const query = gql`
+      query Simple {
+        ...fragmentSpread
+      }
+
+      fragment fragmentSpread on Thing {
+        field
+      }
+    `;
+    const doc = getDirectivesFromDocument([{ name: 'client' }], query);
+    expect(print(doc)).toBe(print(null));
+  });
+
+  it('should get query with client fields when both fields and fragements are mixed', function() {
+    const query = gql`
+      query Simple {
+        user @client
+        product @storage
+        order
+        ...fragmentSpread
+      }
+
+      fragment fragmentSpread on Thing {
+        field @client
+        other
+      }
+    `;
+    const expected = gql`
+      query Simple {
+        user @client
+        ...fragmentSpread
+      }
+
+      fragment fragmentSpread on Thing {
+        field @client
+      }
+    `;
+    const doc = getDirectivesFromDocument([{ name: 'client' }], query);
+    expect(print(doc)).toBe(print(expected));
   });
 });
