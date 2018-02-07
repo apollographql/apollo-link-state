@@ -1,10 +1,6 @@
 import { DocumentNode, DirectiveNode } from 'graphql';
 
-import {
-  checkDocument,
-  removeDirectivesFromDocument,
-  cloneDeep,
-} from 'apollo-utilities';
+import { checkDocument, removeDirectivesFromDocument } from 'apollo-utilities';
 
 import { getDirectivesFromDocument } from './transform';
 
