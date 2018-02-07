@@ -12,7 +12,7 @@ import { graphql } from 'graphql-anywhere/lib/async';
 
 import {
   removeClientSetsFromDocument,
-  getDirectivesFromDocument,
+  getClientSetsFromDocument,
 } from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
@@ -86,10 +86,7 @@ export const withClientState = (
       };
 
       return new Observable(observer => {
-        const clientQuery = getDirectivesFromDocument(
-          [{ name: 'client' }],
-          operation.query,
-        );
+        const clientQuery = getClientSetsFromDocument(operation.query);
         const clientData = cache && cache.readQuery({ query: clientQuery });
         if (server) operation.query = server;
         const obs =
