@@ -90,7 +90,7 @@ export const withClientState = (
           [{ name: 'client' }],
           operation.query,
         );
-        const clientData = cache.readQuery({ query: clientQuery });
+        const clientData = cache && cache.readQuery({ query: clientQuery });
         if (server) operation.query = server;
         const obs =
           server && forward
