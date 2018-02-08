@@ -203,10 +203,51 @@ describe('combination of server and client queries', () => {
       link: local.concat(http),
     });
 
-    let count = 0;
     client.watchQuery({ query }).subscribe({
       next: ({ data }) => {
         expect({ ...data }).toEqual({ count: 0, lastCount: 1 });
+        done();
+      },
+    });
+  });
+
+  it('should support nested quering of both server and client fields', done => {
+    const query = gql`
+      query GetUser {
+        user {
+          firstName @client
+          lastName
+        }
+      }
+    `;
+    const cache = new InMemoryCache();
+
+    const local = withClientState({
+      cache,
+      defaults: {
+        user: {
+          __typename: 'User',
+          firstName: 'John',
+        },
+      },
+      resolvers: {},
+    });
+
+    const http = new ApolloLink(operation => {
+      expect(operation.operationName).toBe('GetUser');
+      return Observable.of({ data: { user: { lastName: 'Doe' } } });
+    });
+
+    const client = new ApolloClient({
+      cache,
+      link: local.concat(http),
+    });
+
+    client.watchQuery({ query }).subscribe({
+      next: ({ data }) => {
+        expect({ ...data }).toBe({
+          user: { firstName: 'John', lastName: 'Doe', __typename: 'User' },
+        });
         done();
       },
     });
