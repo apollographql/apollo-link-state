@@ -174,3 +174,41 @@ describe('server and client state', () => {
     done();
   });
 });
+
+describe('combination of server and client queries', () => {
+  it('simple query with both server and client fields', done => {
+    const query = gql`
+      query GetCount {
+        count @client
+        lastCount
+      }
+    `;
+    const cache = new InMemoryCache();
+
+    const local = withClientState({
+      cache,
+      defaults: {
+        count: 0,
+      },
+      resolvers: {},
+    });
+
+    const http = new ApolloLink(operation => {
+      expect(operation.operationName).toBe('GetCount');
+      return Observable.of({ data: { lastCount: 1 } });
+    });
+
+    const client = new ApolloClient({
+      cache,
+      link: local.concat(http),
+    });
+
+    let count = 0;
+    client.watchQuery({ query }).subscribe({
+      next: ({ data }) => {
+        expect({ ...data }).toEqual({ count: 0, lastCount: 1 });
+        done();
+      },
+    });
+  });
+});
