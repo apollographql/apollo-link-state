@@ -82,7 +82,8 @@
   },
   "dependencies": {
     "apollo-utilities": "^1.0.6",
-    "graphql-anywhere": "^4.1.0-alpha.0"
+    "graphql-anywhere": "^4.1.0-alpha.0",
+    "lodash.merge": "^4.6.1"
   },
   "lint-staged": {
     "*.ts*": [

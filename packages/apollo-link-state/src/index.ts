@@ -7,8 +7,9 @@ import {
 } from 'apollo-link';
 import { ApolloCache } from 'apollo-cache';
 
-import { hasDirectives, getMainDefinition, assign } from 'apollo-utilities';
+import { hasDirectives, getMainDefinition } from 'apollo-utilities';
 import { graphql } from 'graphql-anywhere/lib/async';
+import merge from 'lodash.merge';
 
 import {
   removeClientSetsFromDocument,
@@ -101,7 +102,7 @@ export const withClientState = (
         const sub = obs.subscribe({
           next: ({ data, errors }) => {
             const context = operation.getContext();
-            const newData = assign({}, data, clientData);
+            const newData = merge({}, data, clientData);
             graphql(resolver, query, newData, context, operation.variables)
               .then(nextData => {
                 observer.next({
