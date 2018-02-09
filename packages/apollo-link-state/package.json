@@ -17,25 +17,22 @@
   },
   "homepage": "https://github.com/apollographql/apollo-link-state#readme",
   "scripts": {
-    "build:browser":
-      "browserify ./lib/bundle.umd.js -o=./lib/bundle.js --i apollo-link --i apollo-utilities --i graphql-anywhere && npm run minify:browser",
+    "build:browser": "browserify ./lib/bundle.umd.js -o=./lib/bundle.js --i apollo-link --i apollo-utilities --i graphql-anywhere && npm run minify:browser",
     "build": "tsc -p .",
     "bundle": "rollup -c",
     "clean": "rimraf lib/* && rimraf coverage/*",
     "filesize": "npm run build && npm run build:browser && bundlesize",
     "prelint": "npm run lint-fix",
-    "lint-fix":
-      "prettier --trailing-comma all --single-quote --write \"src/**/*.{j,t}s*\"",
+    "lint-fix": "prettier --trailing-comma all --single-quote --write \"src/**/*.{j,t}s*\"",
     "lint": "tslint --type-check -p tsconfig.json -c tslint.json src/*.ts",
     "lint-staged": "lint-staged",
-    "minify:browser":
-      "uglifyjs -c -m -o ./lib/bundle.min.js -- ./lib/bundle.js",
+    "minify:browser": "uglifyjs -c -m -o ./lib/bundle.min.js -- ./lib/bundle.js",
     "postbuild": "npm run bundle",
     "prebuild": "npm run clean",
     "prepublishOnly": "npm run clean && npm run build",
     "test": "jest",
     "coverage": "npm run lint && jest --coverage",
-    "watch": "tsc -w -p ."
+    "watch": "tsc -w -p . & rollup -w -c"
   },
   "bundlesize": [
     {
@@ -64,7 +61,7 @@
     "pre-commit": "1.2.2",
     "prettier": "1.7.4",
     "rimraf": "2.6.1",
-    "rollup": "0.45.2",
+    "rollup": "^0.55.3",
     "ts-jest": "21.1.4",
     "tslint": "5.8.0",
     "typescript": "2.5.1",
@@ -75,7 +72,12 @@
       ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "json"]
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ]
   },
   "dependencies": {
     "apollo-utilities": "^1.0.6",
@@ -90,7 +92,10 @@
       "prettier --trailing-comma all --single-quote --write",
       "git add"
     ],
-    "*.json*": ["prettier --write", "git add"]
+    "*.json*": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "pre-commit": "lint-staged"
 }
