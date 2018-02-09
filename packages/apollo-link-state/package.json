@@ -32,7 +32,7 @@
     "prepublishOnly": "npm run clean && npm run build",
     "test": "jest",
     "coverage": "npm run lint && jest --coverage",
-    "watch": "tsc -w -p . & rollup -w -c"
+    "watch": "trap 'kill -9 %1' SIGINT; tsc -w -p . & rollup -w -c"
   },
   "bundlesize": [
     {
