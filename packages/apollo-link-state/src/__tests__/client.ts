@@ -9,6 +9,7 @@ import { parse } from 'graphql/language/parser';
 import { withClientState } from '../';
 import { ApolloCache } from 'apollo-cache';
 import { QueryDocumentKeys } from 'graphql/language/visitor';
+import { check } from 'graphql-anywhere/lib/utilities';
 
 const makeTerminatingCheck = (done, body) => {
   return (...args) => {
@@ -444,20 +445,41 @@ describe('cache usage', () => {
         }
       });
 
+      const checkedCount = [10, 11, 12, 10];
       const client = createClient(stateLink);
-      client.mutate({ mutation: plusMutation });
-      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 11});
 
+      const componentObservable = client.watchQuery({query: counterQuery});
+      const unsub = componentObservable.subscribe(({
+        next: ({ data }) => {
+          try{
+            expect(data).toMatchObject({ counter: checkedCount.shift()})
+          } catch (e) {
+            done.fail(e)
+          }
+        },
+        error: done.fail,
+        complete: done.fail,
+      }));
 
-      client.mutate({ mutation: plusMutation });
-      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 12});
-      expect(client.query({query: counterQuery})).resolves.toMatchObject({data: {counter: 12}});
-
-      (client.resetStore() as Promise<null>).then(() => {
-        expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 10 } })
-        .then(done)
+      client.mutate({ mutation: plusMutation })
+        .then(() => {
+          expect(cache.readQuery({ query: counterQuery })).toMatchObject({ counter: 11 });
+          expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 11 } });
+        })
+        .then(() => client.mutate({ mutation: plusMutation }))
+        .then(() => {
+          expect(cache.readQuery({ query: counterQuery })).toMatchObject({ counter: 12 });
+          expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 12 } });
+        })
+        .then(() => client.resetStore() as Promise<null>)
+        .then(() => {
+          expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 10 } })
+            .then(() => {
+              expect(checkedCount.length).toBe(0);
+              done();
+            })
+        })
         .catch(done.fail);
-      }).catch(done.fail);
     });
 
     it('returns the Query result after resetStore', done => {
