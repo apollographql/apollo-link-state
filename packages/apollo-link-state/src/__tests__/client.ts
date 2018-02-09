@@ -7,6 +7,19 @@ import { print } from 'graphql/language/printer';
 import { parse } from 'graphql/language/parser';
 
 import { withClientState } from '../';
+import { ApolloCache } from 'apollo-cache';
+import { QueryDocumentKeys } from 'graphql/language/visitor';
+
+const makeTerminatingCheck = (done, body) => {
+  return (...args) => {
+    try {
+      body(...args);
+      done();
+    } catch (error) {
+      done.fail(error);
+    }
+  };
+}
 
 describe('non cache usage', () => {
   it("doesn't stop normal operations from working", () => {
@@ -313,7 +326,7 @@ describe('cache usage', () => {
     });
   });
 
-  it('writeDefaults lets you write defaults to the cache after the store is reset', async () => {
+  it('writeDefaults lets you write defaults to the cache after the store is reset', done => {
     const mutation = gql`
       mutation foo {
         foo @client
@@ -350,21 +363,292 @@ describe('cache usage', () => {
 
     client.onResetStore(stateLink.writeDefaults);
 
-    client.query({ query }).then(({ data }) => {
-      expect({ ...data }).toEqual({ foo: 'bar' });
-    });
+    client.query({ query })
+      .then(({ data }) => {
+        expect({ ...data }).toEqual({ foo: 'bar' });
+      })
+      .catch(done.fail);
 
     client
       .mutate({ mutation })
       .then(() => client.query({ query }))
       .then(({ data }) => {
         expect({ ...data }).toEqual({ foo: 'woo' });
+      })
+      //should be default after this reset call
+      .then(() => client.resetStore() as Promise<null>)
+      .then(() => client.query({ query }))
+      .then(({ data }) => {
+        expect({ ...data }).toEqual({ foo: 'bar' });
+        done();
+      })
+      .catch(done.fail);
+
+  });
+
+  describe('after resetStore', () => {
+    const counterQuery = gql`
+      query {
+        counter @client
+      }
+    `;
+
+    const plusMutation = gql`
+      mutation plus {
+        plus @client
+      }
+    `;
+
+    //ensures no warnings
+    let oldWarn; 
+    let cache: InMemoryCache;
+    beforeEach(() => {
+      oldWarn = console.warn;
+      console.warn = message => {
+        fail(`warn should not be called, message: ${message}`);
+      };
+
+      cache = new InMemoryCache();
+    });
+
+    afterEach(() => {
+      console.warn = oldWarn;
+    });
+
+    const createClient = stateLink => 
+      new ApolloClient({
+        cache,
+        link: ApolloLink.from([
+          stateLink, 
+          new ApolloLink(() => { throw Error('should never call forward')})
+        ]),
       });
 
-    await client.resetStore();
+    it('returns the default data after resetStore with no Query specified', done => {
+      const stateLink = withClientState({
+        cache,
+        resolvers: {
+          Mutation: {
+            plus: (_, __, { cache }) => {
+              const { counter } = cache.readQuery({ query: counterQuery });
+              const data = {
+                counter: counter + 1
+              };
+              cache.writeData({ data });
+              return null;
+            }
+          }
+        },
+        defaults: {
+          counter: 10,
+        }
+      });
 
-    client.query({ query }).then(({ data }) => {
-      expect({ ...data }).toEqual({ foo: 'bar' });
+      const client = createClient(stateLink);
+      client.mutate({ mutation: plusMutation });
+      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 11});
+
+
+      client.mutate({ mutation: plusMutation });
+      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 12});
+      expect(client.query({query: counterQuery})).resolves.toMatchObject({data: {counter: 12}});
+
+      (client.resetStore() as Promise<null>).then(() => {
+        expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 10 } })
+        .then(done)
+        .catch(done.fail);
+      }).catch(done.fail);
+    });
+
+    it('returns the Query result after resetStore', done => {
+      const stateLink = withClientState({
+        cache,
+        resolvers: {
+          Query: {
+            counter: () => 0,
+          },
+          Mutation: {
+            plus: (_, __, { cache }) => {
+              const { counter } = cache.readQuery({ query: counterQuery });
+              const data = {
+                counter: counter + 1
+              };
+              cache.writeData({ data });
+              return null;
+            }
+          }
+        },
+        defaults: {
+          counter: 10,
+        }
+      });
+
+      const client = createClient(stateLink);
+      client.mutate({ mutation: plusMutation });
+      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 11});
+
+
+      client.mutate({ mutation: plusMutation });
+      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 12});
+      expect(client.query({query: counterQuery})).resolves.toMatchObject({data: {counter: 12}});
+
+      (client.resetStore() as Promise<null>).then(() => {
+        expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 0 } })
+        .then(done)
+        .catch(done.fail);
+      }).catch(done.fail);
+    });
+
+    //should work, but currently does not due to resetStore calling broadcastQueries, then the onResetStore callbacks
+    it.skip('returns the default data from cache in a Query resolver with writeDefaults callback enabled', done => {
+      const stateLink = withClientState({
+        cache,
+        resolvers: {
+          Query: {
+            counter: () => {
+              //This cache read does not see any data
+              return (cache.readQuery({ query: counterQuery}) as any).counter;
+            },
+          },
+          Mutation: {
+            plus: (_, __, { cache }) => {
+              const { counter } = cache.readQuery({ query: counterQuery });
+              const data = {
+                counter: counter + 1
+              };
+              cache.writeData({ data });
+              return null;
+            }
+          }
+        },
+        defaults: {
+          counter: 10,
+        }
+      });
+
+      const client = createClient(stateLink);
+      client.onResetStore(stateLink.writeDefaults);
+
+      client.mutate({ mutation: plusMutation });
+      client.mutate({ mutation: plusMutation });
+      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 12});
+      expect(client.query({query: counterQuery})).resolves.toMatchObject({data: {counter: 12}});
+
+      let called = false;
+      const componentObservable = client.watchQuery({query: counterQuery});
+
+      const unsub = componentObservable.subscribe(({
+        next: ({ data }) => {
+          try{
+            //this fails
+            expect(data).toMatchObject({ counter: 10})
+            called = true;
+          } catch (e) {
+            done.fail(e)
+          }
+        },
+        error: done.fail,
+        complete: done.fail,
+      }));
+
+      (client.resetStore() as Promise<null>).then(() => {
+        expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 10 } })
+          .then(makeTerminatingCheck(() => {
+            unsub.unsubscribe();
+            done();
+          }, () => {
+            expect(called);
+          }))
+          .catch(done.fail);
+      }).catch(done.fail);
+    });
+
+    it('find no data from cache in a Query resolver with no writeDefaults callback enabled', done => {
+      const stateLink = withClientState({
+        cache,
+        resolvers: {
+          Query: {
+            counter: () => {
+              try{
+                return (cache.readQuery({ query: counterQuery}) as any).counter;
+              } catch (error) {
+                try {
+                  expect(error.message).toMatch(/field counter/)
+                } catch(e) {
+                  done.fail(e);
+                }
+                unsub.unsubscribe();
+                done();
+              }
+              return -1; // to remove warning from in-memory-cache
+            }
+          },
+        },
+        defaults: {
+          counter: 10,
+        }
+      });
+
+      const client = createClient(stateLink);
+      const componentObservable = client.watchQuery({query: counterQuery});
+
+      const unsub = componentObservable.subscribe(({
+        next: ({ data }) => done.fail,
+        error: done.fail,
+        complete: done.fail,
+      }));
+
+      (client.resetStore() as Promise<null>)
+    });
+
+    it('should warn when no default or Query resolver specified', done => {
+      console.warn = message => {
+        unsub.unsubscribe();
+        done();
+      };
+
+      const stateLink = withClientState({
+        cache,
+        resolvers: {
+          Query: {
+            counter: () => {},
+          }, //return empty object, does not have counter field
+          Mutation: {
+            plus: (_, __, { cache }) => {
+              const { counter } = cache.readQuery({ query: counterQuery });
+              const data = {
+                counter: counter + 1
+              };
+              cache.writeData({ data });
+              return null;
+            }
+          }
+        },
+        defaults: {
+          counter: 10,
+        }
+      });
+
+      const client = createClient(stateLink);
+      client.mutate({ mutation: plusMutation });
+
+      const componentObservable = client.watchQuery({query: counterQuery});
+
+      let calledOnce = true
+      const unsub = componentObservable.subscribe(({
+        next: data => {
+          try{
+            expect(calledOnce);
+            calledOnce = false;
+           } catch(e) {
+            done.fail(e);
+           }
+        },
+        error: done.fail,
+        complete: done.fail,
+      }));
+
+      (client.resetStore() as Promise<null>)
     });
   });
 });

@@ -69,12 +69,17 @@ export const withClientState = (
 
       const resolver = (fieldName, rootValue = {}, args, context, info) => {
         const fieldValue = rootValue[fieldName];
+
+        //If fieldValue is defined, server returned a value
         if (fieldValue !== undefined) return fieldValue;
 
         // Look for the field in the custom resolver map
         const resolverMap = resolvers[(rootValue as any).__typename || type];
-        const resolve = resolverMap[fieldName];
-        if (resolve) return resolve(rootValue, args, context, info);
+        if(resolverMap){
+          const resolve = resolverMap[fieldName];
+          if (resolve) return resolve(rootValue, args, context, info);
+        }
+        return defaults[fieldName];
       };
 
       return new Observable(observer => {
