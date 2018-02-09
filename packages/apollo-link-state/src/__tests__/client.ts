@@ -20,7 +20,7 @@ const makeTerminatingCheck = (done, body) => {
       done.fail(error);
     }
   };
-}
+};
 
 describe('non cache usage', () => {
   it("doesn't stop normal operations from working", () => {
@@ -364,7 +364,8 @@ describe('cache usage', () => {
 
     client.onResetStore(stateLink.writeDefaults);
 
-    client.query({ query })
+    client
+      .query({ query })
       .then(({ data }) => {
         expect({ ...data }).toEqual({ foo: 'bar' });
       })
@@ -384,7 +385,6 @@ describe('cache usage', () => {
         done();
       })
       .catch(done.fail);
-
   });
 
   describe('after resetStore', () => {
@@ -401,7 +401,7 @@ describe('cache usage', () => {
     `;
 
     //ensures no warnings
-    let oldWarn; 
+    let oldWarn;
     let cache: InMemoryCache;
     beforeEach(() => {
       oldWarn = console.warn;
@@ -416,12 +416,14 @@ describe('cache usage', () => {
       console.warn = oldWarn;
     });
 
-    const createClient = stateLink => 
+    const createClient = stateLink =>
       new ApolloClient({
         cache,
         link: ApolloLink.from([
-          stateLink, 
-          new ApolloLink(() => { throw Error('should never call forward')})
+          stateLink,
+          new ApolloLink(() => {
+            throw Error('should never call forward');
+          }),
         ]),
       });
 
@@ -433,51 +435,61 @@ describe('cache usage', () => {
             plus: (_, __, { cache }) => {
               const { counter } = cache.readQuery({ query: counterQuery });
               const data = {
-                counter: counter + 1
+                counter: counter + 1,
               };
               cache.writeData({ data });
               return null;
-            }
-          }
+            },
+          },
         },
         defaults: {
           counter: 10,
-        }
+        },
       });
 
       const checkedCount = [10, 11, 12, 10];
       const client = createClient(stateLink);
 
-      const componentObservable = client.watchQuery({query: counterQuery});
-      const unsub = componentObservable.subscribe(({
+      const componentObservable = client.watchQuery({ query: counterQuery });
+      const unsub = componentObservable.subscribe({
         next: ({ data }) => {
-          try{
-            expect(data).toMatchObject({ counter: checkedCount.shift()})
+          try {
+            expect(data).toMatchObject({ counter: checkedCount.shift() });
           } catch (e) {
-            done.fail(e)
+            done.fail(e);
           }
         },
         error: done.fail,
         complete: done.fail,
-      }));
+      });
 
-      client.mutate({ mutation: plusMutation })
+      client
+        .mutate({ mutation: plusMutation })
         .then(() => {
-          expect(cache.readQuery({ query: counterQuery })).toMatchObject({ counter: 11 });
-          expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 11 } });
+          expect(cache.readQuery({ query: counterQuery })).toMatchObject({
+            counter: 11,
+          });
+          expect(client.query({ query: counterQuery })).resolves.toMatchObject({
+            data: { counter: 11 },
+          });
         })
         .then(() => client.mutate({ mutation: plusMutation }))
         .then(() => {
-          expect(cache.readQuery({ query: counterQuery })).toMatchObject({ counter: 12 });
-          expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 12 } });
+          expect(cache.readQuery({ query: counterQuery })).toMatchObject({
+            counter: 12,
+          });
+          expect(client.query({ query: counterQuery })).resolves.toMatchObject({
+            data: { counter: 12 },
+          });
         })
         .then(() => client.resetStore() as Promise<null>)
         .then(() => {
-          expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 10 } })
+          expect(client.query({ query: counterQuery }))
+            .resolves.toMatchObject({ data: { counter: 10 } })
             .then(() => {
               expect(checkedCount.length).toBe(0);
               done();
-            })
+            });
         })
         .catch(done.fail);
     });
@@ -493,32 +505,40 @@ describe('cache usage', () => {
             plus: (_, __, { cache }) => {
               const { counter } = cache.readQuery({ query: counterQuery });
               const data = {
-                counter: counter + 1
+                counter: counter + 1,
               };
               cache.writeData({ data });
               return null;
-            }
-          }
+            },
+          },
         },
         defaults: {
           counter: 10,
-        }
+        },
       });
 
       const client = createClient(stateLink);
       client.mutate({ mutation: plusMutation });
-      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 11});
-
+      expect(cache.readQuery({ query: counterQuery })).toMatchObject({
+        counter: 11,
+      });
 
       client.mutate({ mutation: plusMutation });
-      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 12});
-      expect(client.query({query: counterQuery})).resolves.toMatchObject({data: {counter: 12}});
+      expect(cache.readQuery({ query: counterQuery })).toMatchObject({
+        counter: 12,
+      });
+      expect(client.query({ query: counterQuery })).resolves.toMatchObject({
+        data: { counter: 12 },
+      });
 
-      (client.resetStore() as Promise<null>).then(() => {
-        expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 0 } })
-        .then(done)
+      (client.resetStore() as Promise<null>)
+        .then(() => {
+          expect(client.query({ query: counterQuery }))
+            .resolves.toMatchObject({ data: { counter: 0 } })
+            .then(done)
+            .catch(done.fail);
+        })
         .catch(done.fail);
-      }).catch(done.fail);
     });
 
     //should work, but currently does not due to resetStore calling broadcastQueries, then the onResetStore callbacks
@@ -529,23 +549,23 @@ describe('cache usage', () => {
           Query: {
             counter: () => {
               //This cache read does not see any data
-              return (cache.readQuery({ query: counterQuery}) as any).counter;
+              return (cache.readQuery({ query: counterQuery }) as any).counter;
             },
           },
           Mutation: {
             plus: (_, __, { cache }) => {
               const { counter } = cache.readQuery({ query: counterQuery });
               const data = {
-                counter: counter + 1
+                counter: counter + 1,
               };
               cache.writeData({ data });
               return null;
-            }
-          }
+            },
+          },
         },
         defaults: {
           counter: 10,
-        }
+        },
       });
 
       const client = createClient(stateLink);
@@ -553,36 +573,48 @@ describe('cache usage', () => {
 
       client.mutate({ mutation: plusMutation });
       client.mutate({ mutation: plusMutation });
-      expect(cache.readQuery({query: counterQuery})).toMatchObject({counter: 12});
-      expect(client.query({query: counterQuery})).resolves.toMatchObject({data: {counter: 12}});
+      expect(cache.readQuery({ query: counterQuery })).toMatchObject({
+        counter: 12,
+      });
+      expect(client.query({ query: counterQuery })).resolves.toMatchObject({
+        data: { counter: 12 },
+      });
 
       let called = false;
-      const componentObservable = client.watchQuery({query: counterQuery});
+      const componentObservable = client.watchQuery({ query: counterQuery });
 
-      const unsub = componentObservable.subscribe(({
+      const unsub = componentObservable.subscribe({
         next: ({ data }) => {
-          try{
+          try {
             //this fails
-            expect(data).toMatchObject({ counter: 10})
+            expect(data).toMatchObject({ counter: 10 });
             called = true;
           } catch (e) {
-            done.fail(e)
+            done.fail(e);
           }
         },
         error: done.fail,
         complete: done.fail,
-      }));
+      });
 
-      (client.resetStore() as Promise<null>).then(() => {
-        expect(client.query({ query: counterQuery })).resolves.toMatchObject({ data: { counter: 10 } })
-          .then(makeTerminatingCheck(() => {
-            unsub.unsubscribe();
-            done();
-          }, () => {
-            expect(called);
-          }))
-          .catch(done.fail);
-      }).catch(done.fail);
+      (client.resetStore() as Promise<null>)
+        .then(() => {
+          expect(client.query({ query: counterQuery }))
+            .resolves.toMatchObject({ data: { counter: 10 } })
+            .then(
+              makeTerminatingCheck(
+                () => {
+                  unsub.unsubscribe();
+                  done();
+                },
+                () => {
+                  expect(called);
+                },
+              ),
+            )
+            .catch(done.fail);
+        })
+        .catch(done.fail);
     });
 
     it('find no data from cache in a Query resolver with no writeDefaults callback enabled', done => {
@@ -591,36 +623,37 @@ describe('cache usage', () => {
         resolvers: {
           Query: {
             counter: () => {
-              try{
-                return (cache.readQuery({ query: counterQuery}) as any).counter;
+              try {
+                return (cache.readQuery({ query: counterQuery }) as any)
+                  .counter;
               } catch (error) {
                 try {
-                  expect(error.message).toMatch(/field counter/)
-                } catch(e) {
+                  expect(error.message).toMatch(/field counter/);
+                } catch (e) {
                   done.fail(e);
                 }
                 unsub.unsubscribe();
                 done();
               }
               return -1; // to remove warning from in-memory-cache
-            }
+            },
           },
         },
         defaults: {
           counter: 10,
-        }
+        },
       });
 
       const client = createClient(stateLink);
-      const componentObservable = client.watchQuery({query: counterQuery});
+      const componentObservable = client.watchQuery({ query: counterQuery });
 
-      const unsub = componentObservable.subscribe(({
+      const unsub = componentObservable.subscribe({
         next: ({ data }) => done.fail,
         error: done.fail,
         complete: done.fail,
-      }));
+      });
 
-      (client.resetStore() as Promise<null>)
+      client.resetStore() as Promise<null>;
     });
 
     it('should warn when no default or Query resolver specified', done => {
@@ -639,38 +672,38 @@ describe('cache usage', () => {
             plus: (_, __, { cache }) => {
               const { counter } = cache.readQuery({ query: counterQuery });
               const data = {
-                counter: counter + 1
+                counter: counter + 1,
               };
               cache.writeData({ data });
               return null;
-            }
-          }
+            },
+          },
         },
         defaults: {
           counter: 10,
-        }
+        },
       });
 
       const client = createClient(stateLink);
       client.mutate({ mutation: plusMutation });
 
-      const componentObservable = client.watchQuery({query: counterQuery});
+      const componentObservable = client.watchQuery({ query: counterQuery });
 
-      let calledOnce = true
-      const unsub = componentObservable.subscribe(({
+      let calledOnce = true;
+      const unsub = componentObservable.subscribe({
         next: data => {
-          try{
+          try {
             expect(calledOnce);
             calledOnce = false;
-           } catch(e) {
+          } catch (e) {
             done.fail(e);
-           }
+          }
         },
         error: done.fail,
         complete: done.fail,
-      }));
+      });
 
-      (client.resetStore() as Promise<null>)
+      client.resetStore() as Promise<null>;
     });
   });
 });
