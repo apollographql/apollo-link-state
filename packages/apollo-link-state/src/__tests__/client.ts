@@ -7,9 +7,6 @@ import { print } from 'graphql/language/printer';
 import { parse } from 'graphql/language/parser';
 
 import { withClientState } from '../';
-import { ApolloCache } from 'apollo-cache';
-import { QueryDocumentKeys } from 'graphql/language/visitor';
-import { check } from 'graphql-anywhere/lib/utilities';
 
 const makeTerminatingCheck = (done, body) => {
   return (...args) => {
