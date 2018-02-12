@@ -235,18 +235,21 @@ describe('combination of server and client queries', () => {
 
     const http = new ApolloLink(operation => {
       expect(operation.operationName).toBe('GetUser');
-      return Observable.of({ data: { user: { lastName: 'Doe' } } });
+      return Observable.of({
+        data: { user: { lastName: 'Doe', __typename: 'User' } },
+      });
     });
 
     const client = new ApolloClient({
       cache,
       link: local.concat(http),
     });
-
     client.watchQuery({ query }).subscribe({
       next: ({ data }) => {
-        expect({ ...data }).toBe({
-          user: { firstName: 'John', lastName: 'Doe', __typename: 'User' },
+        expect({ ...data.user }).toEqual({
+          firstName: 'John',
+          lastName: 'Doe',
+          __typename: 'User',
         });
         done();
       },

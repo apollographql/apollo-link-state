@@ -9,7 +9,7 @@ import { ApolloCache } from 'apollo-cache';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
 import { graphql } from 'graphql-anywhere/lib/async';
-const merge = require('lodash.merge');
+import { merge } from 'lodash';
 
 import {
   removeClientSetsFromDocument,
