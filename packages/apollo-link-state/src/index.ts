@@ -7,7 +7,11 @@ import {
 } from 'apollo-link';
 import { ApolloCache } from 'apollo-cache';
 
-import { hasDirectives, getMainDefinition } from 'apollo-utilities';
+import {
+  hasDirectives,
+  getMainDefinition,
+  getOperationName,
+} from 'apollo-utilities';
 import { graphql } from 'graphql-anywhere/lib/async';
 import { merge } from 'lodash';
 
@@ -87,8 +91,12 @@ export const withClientState = (
       };
 
       return new Observable(observer => {
+        const operationName = getOperationName(operation.query);
         const clientQuery = getClientSetsFromDocument(operation.query);
-        const clientData = cache && cache.readQuery({ query: clientQuery });
+        const clientData =
+          cache &&
+          operationName === 'query' &&
+          cache.readQuery({ query: clientQuery });
         if (server) operation.query = server;
         const obs =
           server && forward
