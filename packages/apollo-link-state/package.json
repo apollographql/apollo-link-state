@@ -81,7 +81,7 @@
     "moduleFileExtensions": ["ts", "tsx", "js", "json"]
   },
   "dependencies": {
-    "apollo-utilities": "^1.0.6",
+    "apollo-utilities": "^1.0.8",
     "graphql-anywhere": "^4.1.0-alpha.0",
     "lodash": "^4.17.5"
   },
