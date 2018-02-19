@@ -255,4 +255,104 @@ describe('combination of server and client queries', () => {
       },
     });
   });
+
+  it('combine both server and client mutations', done => {
+    const query = gql`
+      query SampleQuery {
+        count @client
+        user {
+          firstName
+        }
+      }
+    `;
+    const mutation = gql`
+      mutation SampleMutation {
+        incrementCount @client
+        updateUser(firstName: "Harry") {
+          firstName
+        }
+      }
+    `;
+
+    const counterQuery = gql`
+      {
+        count @client
+      }
+    `;
+    const userQuery = gql`
+      {
+        user {
+          firstName
+        }
+      }
+    `;
+    const cache = new InMemoryCache();
+
+    const local = withClientState({
+      cache,
+      defaults: {
+        count: 0,
+      },
+      resolvers: {
+        Mutation: {
+          incrementCount: (_, __, { cache }) => {
+            const { count } = cache.readQuery({ query: counterQuery });
+            const data = { count: count + 1 };
+            cache.writeData({ data });
+            return null;
+          },
+        },
+      },
+    });
+
+    let watchCount = 0;
+    const http = new ApolloLink(operation => {
+      if (operation.operationName === 'SampleQuery') {
+        return Observable.of({
+          data: { user: { __typename: 'User', firstName: 'John' } },
+        });
+      }
+      if (operation.operationName === 'SampleMutation') {
+        return Observable.of({
+          data: { updateUser: { __typename: 'User', firstName: 'Harry' } },
+        });
+      }
+    });
+
+    const client = new ApolloClient({
+      cache,
+      link: local.concat(http),
+    });
+
+    client.watchQuery({ query }).subscribe({
+      next: ({ data }) => {
+        if (watchCount === 0) {
+          expect(data.count).toEqual(0);
+          expect({ ...data.user }).toEqual({
+            __typename: 'User',
+            firstName: 'John',
+          });
+          watchCount += 1;
+          client.mutate({
+            mutation,
+            update: (proxy, { data: { updateUser } }) => {
+              proxy.writeQuery({
+                query: userQuery,
+                data: {
+                  user: { ...updateUser },
+                },
+              });
+            },
+          });
+        } else {
+          expect(data.count).toEqual(1);
+          expect({ ...data.user }).toEqual({
+            __typename: 'User',
+            firstName: 'Harry',
+          });
+          done();
+        }
+      },
+    });
+  });
 });
