@@ -16,7 +16,7 @@ export default {
   output: {
     file: 'lib/bundle.umd.js',
     format: 'umd',
-    name: 'apolloLink.error',
+    name: 'apolloLink.state',
     exports: 'named',
     sourcemap: true,
     globals,
