@@ -1,3 +1,6 @@
+import resolve from 'rollup-plugin-local-resolve';
+import sourcemaps from 'rollup-plugin-sourcemaps';
+
 const globals = {
   // Apollo
   'apollo-client': 'apollo.core',
@@ -5,7 +8,7 @@ const globals = {
   'apollo-link': 'apolloLink.core',
   'apollo-utilities': 'apollo.utilities',
 
-  'graphql-anywhere/lib/async': 'async',
+  'graphql-anywhere/lib/async': 'graphqlAnywhere.async',
 };
 
 export default {
@@ -13,14 +16,15 @@ export default {
   output: {
     file: 'lib/bundle.umd.js',
     format: 'umd',
-    name: 'errorLink',
+    name: 'apolloLink.error',
     exports: 'named',
     sourcemap: true,
     globals,
   },
   external: Object.keys(globals),
   onwarn,
-}
+  plugins: [resolve(), sourcemaps()],
+};
 
 function onwarn(message) {
   const suppressed = ['UNRESOLVED_IMPORT', 'THIS_IS_UNDEFINED'];
