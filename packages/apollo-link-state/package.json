@@ -18,7 +18,7 @@
   "homepage": "https://github.com/apollographql/apollo-link-state#readme",
   "scripts": {
     "build:browser":
-      "browserify ./lib/bundle.umd.js -o=./lib/bundle.js --i apollo-link --i lodash --i apollo-utilities --i graphql-anywhere && npm run minify:browser",
+      "browserify ./lib/bundle.umd.js -o=./lib/bundle.js --i apollo-link --i apollo-utilities --i graphql-anywhere && npm run minify:browser",
     "build": "tsc -p .",
     "bundle": "rollup -c",
     "clean": "rimraf lib/* && rimraf coverage/*",
@@ -82,8 +82,7 @@
   },
   "dependencies": {
     "apollo-utilities": "^1.0.8",
-    "graphql-anywhere": "^4.1.0-alpha.0",
-    "lodash": "^4.17.5"
+    "graphql-anywhere": "^4.1.0-alpha.0"
   },
   "lint-staged": {
     "*.ts*": [
