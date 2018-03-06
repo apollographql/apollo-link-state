@@ -246,11 +246,15 @@ describe('combination of server and client queries', () => {
     });
     client.watchQuery({ query }).subscribe({
       next: ({ data }) => {
-        expect({ ...data.user }).toEqual({
-          firstName: 'John',
-          lastName: 'Doe',
-          __typename: 'User',
-        });
+        try {
+          expect({ ...data.user }).toEqual({
+            firstName: 'John',
+            lastName: 'Doe',
+            __typename: 'User',
+          });
+        } catch (e) {
+          done.fail(e);
+        }
         done();
       },
     });
