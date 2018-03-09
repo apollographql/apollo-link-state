@@ -62,7 +62,7 @@ const resolvers = {
 
 it('strips out the client directive and does not call other links if no more fields', done => {
   const nextLink = new ApolloLink(operation => {
-    done.fail(new Error('should not have called'));
+    return done.fail(new Error('should not have called'));
   });
 
   const client = withClientState({ resolvers });
@@ -151,7 +151,11 @@ it('runs resolvers for missing client queries with server data including fragmen
   );
   const client = withClientState({ resolvers });
   execute(client.concat(sample), { query }).subscribe(({ data }) => {
-    expect(data).toEqual({ foo: { bar: true }, bar: { baz: true } });
+    try {
+      expect(data).toEqual({ foo: { bar: true }, bar: { baz: true } });
+    } catch (e) {
+      done.fail(e);
+    }
     done();
   }, done.fail);
 });
@@ -192,13 +196,18 @@ it('runs resolvers for missing client queries with aliased field', done => {
     }
   `;
   const sample = new ApolloLink(() =>
-    Observable.of({ data: { bar: { foo: true } } }),
+    //The server takes care of the aliasing, so returns baz, not bar
+    Observable.of({ data: { baz: { foo: true } } }),
   );
   const client = withClientState({
     resolvers,
   });
   execute(client.concat(sample), { query }).subscribe(({ data }) => {
-    expect(data).toEqual({ foo: { bar: true }, baz: { foo: true } });
+    try {
+      expect(data).toEqual({ foo: { bar: true }, baz: { foo: true } });
+    } catch (e) {
+      done.fail(e);
+    }
     done();
   }, done.fail);
 });

@@ -766,19 +766,33 @@ describe('sample usage', () => {
       next: ({ data }) => {
         count++;
         if (count === 1) {
-          expect({ ...data }).toEqual({ count: 0, lastCount: 1 });
+          try {
+            expect({ ...data }).toEqual({ count: 0, lastCount: 1 });
+          } catch (e) {
+            done.fail(e);
+          }
           client.mutate({ mutation: increment, variables: { amount: 2 } });
         }
 
         if (count === 2) {
-          expect({ ...data }).toEqual({ count: 2, lastCount: 1 });
+          try {
+            expect({ ...data }).toEqual({ count: 2, lastCount: 1 });
+          } catch (e) {
+            done.fail(e);
+          }
           client.mutate({ mutation: decrement, variables: { amount: 1 } });
         }
         if (count === 3) {
-          expect({ ...data }).toEqual({ count: 1, lastCount: 1 });
+          try {
+            expect({ ...data }).toEqual({ count: 1, lastCount: 1 });
+          } catch (e) {
+            done.fail(e);
+          }
           done();
         }
       },
+      error: e => done.fail(e),
+      complete: done.fail,
     });
   });
   it('works for a simple todo app', done => {

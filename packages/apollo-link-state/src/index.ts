@@ -22,7 +22,7 @@ export type ClientStateConfig = {
 };
 
 export const withClientState = (
-  clientStateConfig: ClientStateConfig = { resolvers: {} },
+  clientStateConfig: ClientStateConfig = { resolvers: {}, defaults: {} },
 ) => {
   const { resolvers, defaults, cache, typeDefs } = clientStateConfig;
   if (cache && defaults) {
@@ -68,7 +68,9 @@ export const withClientState = (
         ) || 'Query';
 
       const resolver = (fieldName, rootValue = {}, args, context, info) => {
-        const fieldValue = rootValue[fieldName];
+        //resultKey is where data under the field name is ultimately returned by the server
+        //https://github.com/apollographql/apollo-client/tree/master/packages/graphql-anywhere#resolver-info
+        const fieldValue = rootValue[info.resultKey];
 
         //If fieldValue is defined, server returned a value
         if (fieldValue !== undefined) return fieldValue;
@@ -79,6 +81,10 @@ export const withClientState = (
           const resolve = resolverMap[fieldName];
           if (resolve) return resolve(rootValue, args, context, info);
         }
+        //TODO: the proper thing to do here is throw an error saying to
+        //add `client.onResetStore(link.writeDefaults);`
+        //waiting on https://github.com/apollographql/apollo-client/pull/3010
+        //Currently with nested fields, this sort of return does not work
         return defaults[fieldName];
       };
 
@@ -96,7 +102,8 @@ export const withClientState = (
         const sub = obs.subscribe({
           next: ({ data, errors }) => {
             const context = operation.getContext();
-
+            //data is from the server and provides the root value to this GraphQL resolution
+            //when there is no resolver, the data is taken from the context
             graphql(resolver, query, data, context, operation.variables)
               .then(nextData => {
                 observer.next({

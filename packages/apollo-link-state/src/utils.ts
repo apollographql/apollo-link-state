@@ -1,7 +1,6 @@
 import { DocumentNode, DirectiveNode } from 'graphql';
 
 import {
-  // getDirectives,
   checkDocument,
   removeDirectivesFromDocument,
 } from 'apollo-utilities';
