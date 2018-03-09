@@ -3,7 +3,6 @@ import { DocumentNode, DirectiveNode } from 'graphql';
 import {
   checkDocument,
   removeDirectivesFromDocument,
-  getDirectivesFromDocument,
 } from 'apollo-utilities';
 
 const connectionRemoveConfig = {
@@ -28,18 +27,5 @@ export function removeClientSetsFromDocument(
 
   // caching
   removed.set(query, docClone);
-  return docClone;
-}
-
-const clientQuery = new Map();
-export function getClientSetsFromDocument(query: DocumentNode): DocumentNode {
-  // caching
-  const cached = clientQuery.get(query);
-  if (cached) return cached;
-
-  const docClone = getDirectivesFromDocument([{ name: 'client' }], query);
-
-  // caching
-  clientQuery.set(query, docClone);
   return docClone;
 }
