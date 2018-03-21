@@ -20,7 +20,6 @@ const typeDefs = `
   type Mutation {
     addTodo(text: String!): Todo
     toggleTodo(id: Int!): Todo
-    visibilityFilter(filter: String!): String
   }
 
   type Query {
