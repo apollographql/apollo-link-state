@@ -4,11 +4,9 @@ import { ApolloClient } from 'apollo-client';
 import { withClientState } from 'apollo-link-state';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloProvider } from 'react-apollo';
-import merge from 'lodash.merge';
 
 import App from './components/App';
-import todos from './resolvers/todos';
-import visibilityFilter from './resolvers/visibilityFilter';
+import { resolvers, defaults } from './resolvers';
 
 const cache = new InMemoryCache();
 
@@ -33,7 +31,7 @@ const typeDefs = `
 
 const client = new ApolloClient({
   cache,
-  link: withClientState({ ...merge(todos, visibilityFilter), cache, typeDefs }),
+  link: withClientState({ resolvers, defaults, cache, typeDefs }),
 });
 
 render(
