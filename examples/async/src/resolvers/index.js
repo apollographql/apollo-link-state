@@ -20,21 +20,10 @@ export default {
           maximumAge,
         });
 
-        /*
-        The object returned from getCurrentPosition has read only properties.
-        Copying read-only properties is blocked by Object.assign.
-        Copying read-only properties is not blocked by the spread operator (according to the spec),
-        Since Babel compiles the spread operator to Object.assign, we can't use it here until the transform is spec-compliant.
-        https://github.com/babel/babel/pull/7034
-        */
-
         const { coords, timestamp } = data;
         return {
           coords: {
-            latitude: coords.latitude,
-            longitude: coords.longitude,
-            altitude: coords.altitude,
-            accuracy: coords.accuracy,
+            ...coords,
             __typename: 'Coordinates',
           },
           timestamp,
