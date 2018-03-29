@@ -1,6 +1,6 @@
 # Change log
 
-### vNext
+### 0.4.1
 - Return defaults when no Queries resolver is found and check for `resolverMap` [#202](https://github.com/apollographql/apollo-link-state/pull/202)
 - Fix for merging local & remote data not part of same selection set [#193](https://github.com/apollographql/apollo-link-state/pull/193)
 - Fix Typescript sourcemaps [#211](https://github.com/apollographql/apollo-link-state/pull/211)
