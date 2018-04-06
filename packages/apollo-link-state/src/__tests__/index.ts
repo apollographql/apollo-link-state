@@ -110,6 +110,86 @@ it('runs resolvers for client queries', done => {
   }, done.fail);
 });
 
+it('runs resolvers for nested client queries', done => {
+  const nestedQuery = gql`
+    query NestedQuery {
+      foo @client {
+        bar
+        nestedBar {
+          baz
+        }
+      }
+    }
+  `;
+  const getNestedBarById = id =>
+    id === '42'
+      ? {
+          baz: true,
+        }
+      : null;
+
+  const client = withClientState({
+    resolvers: {
+      Foo: {
+        nestedBar: ({ nestedBar }) => getNestedBarById(nestedBar),
+      },
+      Query: {
+        foo: () => ({ bar: true, nestedBar: '42', __typename: 'Foo' }),
+      },
+    },
+  });
+  execute(client, { query: nestedQuery }).subscribe(({ data }) => {
+    expect(data).toEqual({ foo: { bar: true, nestedBar: { baz: true } } });
+    done();
+  }, done.fail);
+});
+
+it('runs resolvers for missing nested client queries with server data', done => {
+  const nestedQuery = gql`
+    query MixedNestedQuery {
+      foo @client {
+        bar
+        nestedBar {
+          baz
+        }
+      }
+      bar {
+        baz
+      }
+    }
+  `;
+  const getNestedBarById = id =>
+    id === '42'
+      ? {
+          baz: true,
+        }
+      : null;
+
+  const sample = new ApolloLink(() =>
+    Observable.of({ data: { bar: { baz: false } } }),
+  );
+  const client = withClientState({
+    resolvers: {
+      Foo: {
+        nestedBar: ({ nestedBar }) => getNestedBarById(nestedBar),
+      },
+      Query: {
+        foo: () => ({ bar: true, nestedBar: '42', __typename: 'Foo' }),
+      },
+    },
+  });
+  execute(client.concat(sample), { query: nestedQuery }).subscribe(
+    ({ data }) => {
+      expect(data).toEqual({
+        foo: { bar: true, nestedBar: { baz: true } },
+        bar: { baz: true },
+      });
+      done();
+    },
+    done.fail,
+  );
+});
+
 it('runs resolvers for missing client queries with server data', done => {
   const query = gql`
     query Mixed {

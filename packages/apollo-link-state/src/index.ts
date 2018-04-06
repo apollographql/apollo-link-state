@@ -68,19 +68,31 @@ export const withClientState = (
         //https://github.com/apollographql/apollo-client/tree/master/packages/graphql-anywhere#resolver-info
         const fieldValue = rootValue[info.resultKey];
 
-        //If fieldValue is defined, server returned a value
-        if (fieldValue !== undefined) return fieldValue;
+        const useServerReturnedValue =
+          fieldValue !== undefined &&
+          ((rootValue as any).__typename || type) == 'Query';
+
+        //If fieldValue is defined and we are at the Query level, server returned a value so we return it
+        if (useServerReturnedValue) {
+          return fieldValue;
+        }
 
         // Look for the field in the custom resolver map
         const resolverMap = resolvers[(rootValue as any).__typename || type];
         if (resolverMap) {
           const resolve = resolverMap[fieldName];
           if (resolve) return resolve(rootValue, args, context, info);
+          if (fieldValue !== undefined) return fieldValue;
         }
+        if (fieldValue !== undefined) {
+          return fieldValue;
+        }
+
         //TODO: the proper thing to do here is throw an error saying to
         //add `client.onResetStore(link.writeDefaults);`
         //waiting on https://github.com/apollographql/apollo-client/pull/3010
         //Currently with nested fields, this sort of return does not work
+
         return defaults[fieldName];
       };
 
