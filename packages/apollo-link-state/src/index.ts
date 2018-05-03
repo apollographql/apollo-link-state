@@ -8,8 +8,8 @@ import {
 import { ApolloCache } from 'apollo-cache';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
-import { graphql } from 'graphql-anywhere/lib/async';
-
+import Async from 'graphql-anywhere/lib/async';
+const { graphql } = Async;
 import { removeClientSetsFromDocument } from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
