@@ -721,7 +721,7 @@ describe('cache usage', () => {
         complete: done.fail,
       });
 
-      client.resetStore() as Promise<null>;
+      client.resetStore();
     });
   });
 });
