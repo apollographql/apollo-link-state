@@ -12,6 +12,7 @@ const resolvers = {
 };
 
 it('runs resolvers for missing client queries with aliased field', done => {
+  expect.assertions(1);
   const query = gql`
     query Aliased {
       foo @client {
@@ -23,17 +24,18 @@ it('runs resolvers for missing client queries with aliased field', done => {
     }
   `;
   const sample = new ApolloLink(() =>
-    // The link-level takes care of the aliasing, so returns baz, not bar
+    // Each link is responsible for implementing their own aliasing so it returns baz not bar
     Observable.of({ data: { baz: { foo: true } } }),
   );
   const clientLink = withClientState({
     resolvers,
   });
-  execute(clientLink.concat(sample), { query }).subscribe(({ data }) => {
+  return execute(clientLink.concat(sample), { query }).subscribe(({ data }) => {
     try {
       expect(data).toEqual({ foo: { bar: true }, baz: { foo: true } });
     } catch (e) {
       done.fail(e);
+      return;
     }
     done();
   }, done.fail);
@@ -61,6 +63,40 @@ it('runs resolvers for client queries when aliases are in use on the @client-tag
   });
   execute(client, { query: aliasedQuery }).subscribe(({ data }) => {
     expect(data).toEqual({ fie: { bar: true } });
+    done();
+  }, done.fail);
+});
+
+it('respects aliases for *nested fields* on the @client-tagged node', done => {
+  const aliasedQuery = gql`
+    query Test {
+      fie: foo @client {
+        fum: bar
+      }
+      baz: bar {
+        foo
+      }
+    }
+  `;
+  const clientLink = withClientState({
+    resolvers: {
+      Query: {
+        foo: () => ({ bar: true }),
+        fie: () => {
+          done.fail(
+            "Called the resolver using the alias' name, instead of the correct resolver name.",
+          );
+        },
+      },
+    },
+  });
+  const sample = new ApolloLink(() =>
+    Observable.of({ data: { baz: { foo: true } } }),
+  );
+  execute(clientLink.concat(sample), {
+    query: aliasedQuery,
+  }).subscribe(({ data }) => {
+    expect(data).toEqual({ fie: { fum: true }, baz: { foo: true } });
     done();
   }, done.fail);
 });
