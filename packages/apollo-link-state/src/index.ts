@@ -8,7 +8,7 @@ import {
 import { ApolloCache } from 'apollo-cache';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
-import { graphql } from 'graphql-anywhere/lib/async';
+import { graphql, FragmentMatcher } from 'graphql-anywhere/lib/async';
 
 import { removeClientSetsFromDocument } from './utils';
 
@@ -19,12 +19,19 @@ export type ClientStateConfig = {
   resolvers: any;
   defaults?: any;
   typeDefs?: string | string[];
+  fragmentMatcher?: FragmentMatcher;
 };
 
 export const withClientState = (
   clientStateConfig: ClientStateConfig = { resolvers: {}, defaults: {} },
 ) => {
-  const { resolvers, defaults, cache, typeDefs } = clientStateConfig;
+  const {
+    resolvers,
+    defaults,
+    cache,
+    typeDefs,
+    fragmentMatcher,
+  } = clientStateConfig;
   if (cache && defaults) {
     cache.writeData({ data: defaults });
   }
@@ -100,7 +107,9 @@ export const withClientState = (
             const context = operation.getContext();
             //data is from the server and provides the root value to this GraphQL resolution
             //when there is no resolver, the data is taken from the context
-            graphql(resolver, query, data, context, operation.variables)
+            graphql(resolver, query, data, context, operation.variables, {
+              fragmentMatcher,
+            })
               .then(nextData => {
                 observer.next({
                   data: nextData,
