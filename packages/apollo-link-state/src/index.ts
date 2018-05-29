@@ -8,7 +8,8 @@ import {
 import { ApolloCache } from 'apollo-cache';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
-import { graphql, FragmentMatcher } from 'graphql-anywhere/lib/async';
+import { graphql } from 'graphql-anywhere/lib/async';
+import { FragmentMatcher } from 'graphql-anywhere';
 
 import { removeClientSetsFromDocument } from './utils';
 
