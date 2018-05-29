@@ -160,6 +160,32 @@ describe('non cache usage', () => {
           }),
       );
   });
+  it('supports subscriptions', done => {
+    const query = gql`
+      subscription {
+        field
+      }
+    `;
+
+    const link = new ApolloLink(() =>
+      Observable.of({ data: { field: 1 } }, { data: { field: 2 } }),
+    );
+    const local = withClientState();
+
+    const client = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: local.concat(link),
+    });
+
+    let counter = 0;
+    expect.assertions(2);
+    return client.subscribe({ query }).forEach(item => {
+      expect(item).toMatchObject({ data: { field: ++counter } });
+      if (counter === 2) {
+        done();
+      }
+    });
+  });
 });
 
 describe('cache usage', () => {
