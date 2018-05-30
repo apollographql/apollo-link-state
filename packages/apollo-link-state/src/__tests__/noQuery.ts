@@ -43,7 +43,7 @@ describe('writing data with no query', () => {
         .mutate({ mutation })
         .then(() => client.query({ query }))
         .then(({ data }) => {
-          expect({ ...data }).toEqual({ field: 1 });
+          expect({ ...data }).toMatchObject({ field: 1 });
         });
     });
 
