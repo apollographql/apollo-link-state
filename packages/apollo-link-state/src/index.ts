@@ -92,19 +92,18 @@ export const withClientState = (
         return defaults[fieldName];
       };
 
-      return new Observable(observer => {
-        if (server) operation.query = server;
-        const obs =
-          server && forward
-            ? forward(operation)
-            : Observable.of({
-                data: {},
-              });
+      if (server) operation.query = server;
+      const obs =
+        server && forward
+          ? forward(operation)
+          : Observable.of({
+              data: {},
+            });
 
-        const observerErrorHandler = observer.error.bind(observer);
-
-        const sub = obs.subscribe({
-          next: ({ data, errors }) => {
+      return obs.flatMap(
+        ({ data, errors }) =>
+          new Observable(observer => {
+            const observerErrorHandler = observer.error.bind(observer);
             const context = operation.getContext();
             //data is from the server and provides the root value to this GraphQL resolution
             //when there is no resolver, the data is taken from the context
@@ -119,14 +118,8 @@ export const withClientState = (
                 observer.complete();
               })
               .catch(observerErrorHandler);
-          },
-          error: observerErrorHandler,
-        });
-
-        return () => {
-          if (sub) sub.unsubscribe();
-        };
-      });
+          }),
+      );
     }
   }();
 };

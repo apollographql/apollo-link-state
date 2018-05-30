@@ -40,7 +40,7 @@ describe('non cache usage', () => {
     });
 
     return client.query({ query }).then(({ data }) => {
-      expect({ ...data }).toEqual({ field: 1 });
+      expect({ ...data }).toMatchObject({ field: 1 });
     });
   });
   it('works for an introspection query', () => {
@@ -84,7 +84,7 @@ describe('non cache usage', () => {
     });
 
     return client.query({ query }).then(({ data }) => {
-      expect({ ...data }).toEqual({ field: 1 });
+      expect({ ...data }).toMatchObject({ field: 1 });
     });
   });
   it('caches the data for future lookups', () => {
@@ -114,12 +114,12 @@ describe('non cache usage', () => {
     return client
       .query({ query })
       .then(({ data }) => {
-        expect({ ...data }).toEqual({ field: 1 });
+        expect({ ...data }).toMatchObject({ field: 1 });
         expect(count).toBe(1);
       })
       .then(() =>
         client.query({ query }).then(({ data }) => {
-          expect({ ...data }).toEqual({ field: 1 });
+          expect({ ...data }).toMatchObject({ field: 1 });
           expect(count).toBe(1);
         }),
       );
@@ -151,17 +151,43 @@ describe('non cache usage', () => {
     return client
       .query({ query })
       .then(({ data }) => {
-        expect({ ...data }).toEqual({ field: 1 });
+        expect({ ...data }).toMatchObject({ field: 1 });
         expect(count).toBe(1);
       })
       .then(() =>
         client
           .query({ query, fetchPolicy: 'network-only' })
           .then(({ data }) => {
-            expect({ ...data }).toEqual({ field: 1 });
+            expect({ ...data }).toMatchObject({ field: 1 });
             expect(count).toBe(2);
           }),
       );
+  });
+  it('supports subscriptions', done => {
+    const query = gql`
+      subscription {
+        field
+      }
+    `;
+
+    const link = new ApolloLink(() =>
+      Observable.of({ data: { field: 1 } }, { data: { field: 2 } }),
+    );
+    const local = withClientState();
+
+    const client = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: local.concat(link),
+    });
+
+    let counter = 0;
+    expect.assertions(2);
+    return client.subscribe({ query }).forEach(item => {
+      expect(item).toMatchObject({ data: { field: ++counter } });
+      if (counter === 2) {
+        done();
+      }
+    });
   });
   it('uses fragment matcher', () => {
     const query = gql`
@@ -238,7 +264,7 @@ describe('cache usage', () => {
 
     client
       .query({ query })
-      .then(({ data }) => expect({ ...data }).toEqual({ field: 'yo' }));
+      .then(({ data }) => expect({ ...data }).toMatchObject({ field: 'yo' }));
   });
   it('lets you write to the cache with a mutation', () => {
     const query = gql`
@@ -273,7 +299,7 @@ describe('cache usage', () => {
       .mutate({ mutation })
       .then(() => client.query({ query }))
       .then(({ data }) => {
-        expect({ ...data }).toEqual({ field: 1 });
+        expect({ ...data }).toMatchObject({ field: 1 });
       });
   });
   it('lets you write to the cache with a mutation and it rerenders automatically', done => {
@@ -313,12 +339,12 @@ describe('cache usage', () => {
       next: ({ data }) => {
         count++;
         if (count === 1) {
-          expect({ ...data }).toEqual({ field: 0 });
+          expect({ ...data }).toMatchObject({ field: 0 });
           client.mutate({ mutation });
         }
 
         if (count === 2) {
-          expect({ ...data }).toEqual({ field: 1 });
+          expect({ ...data }).toMatchObject({ field: 1 });
           done();
         }
       },
@@ -367,7 +393,7 @@ describe('cache usage', () => {
       })
       .then(() => client.query({ query }))
       .then(({ data }) => {
-        expect({ ...data }).toEqual({ field: '1234' });
+        expect({ ...data }).toMatchObject({ field: '1234' });
       });
   });
 
@@ -443,7 +469,7 @@ describe('cache usage', () => {
     client
       .query({ query })
       .then(({ data }) => {
-        expect({ ...data }).toEqual({ foo: 'bar' });
+        expect({ ...data }).toMatchObject({ foo: 'bar' });
       })
       .catch(done.fail);
 
@@ -451,13 +477,13 @@ describe('cache usage', () => {
       .mutate({ mutation })
       .then(() => client.query({ query }))
       .then(({ data }) => {
-        expect({ ...data }).toEqual({ foo: 'woo' });
+        expect({ ...data }).toMatchObject({ foo: 'woo' });
       })
       //should be default after this reset call
       .then(() => client.resetStore() as Promise<null>)
       .then(() => client.query({ query }))
       .then(({ data }) => {
-        expect({ ...data }).toEqual({ foo: 'bar' });
+        expect({ ...data }).toMatchObject({ foo: 'bar' });
         done();
       })
       .catch(done.fail);
@@ -570,7 +596,7 @@ describe('cache usage', () => {
         .catch(done.fail);
     });
 
-    it('returns the Query result after resetStore', done => {
+    it('returns the Query result after resetStore', async done => {
       const stateLink = withClientState({
         cache,
         resolvers: {
@@ -594,16 +620,18 @@ describe('cache usage', () => {
       });
 
       const client = createClient(stateLink);
-      client.mutate({ mutation: plusMutation });
+      await client.mutate({ mutation: plusMutation });
       expect(cache.readQuery({ query: counterQuery })).toMatchObject({
         counter: 11,
       });
 
-      client.mutate({ mutation: plusMutation });
+      await client.mutate({ mutation: plusMutation });
       expect(cache.readQuery({ query: counterQuery })).toMatchObject({
         counter: 12,
       });
-      expect(client.query({ query: counterQuery })).resolves.toMatchObject({
+      await expect(
+        client.query({ query: counterQuery }),
+      ).resolves.toMatchObject({
         data: { counter: 12 },
       });
 
@@ -846,7 +874,7 @@ describe('sample usage', () => {
         count++;
         if (count === 1) {
           try {
-            expect({ ...data }).toEqual({ count: 0, lastCount: 1 });
+            expect({ ...data }).toMatchObject({ count: 0, lastCount: 1 });
           } catch (e) {
             done.fail(e);
           }
@@ -855,7 +883,7 @@ describe('sample usage', () => {
 
         if (count === 2) {
           try {
-            expect({ ...data }).toEqual({ count: 2, lastCount: 1 });
+            expect({ ...data }).toMatchObject({ count: 2, lastCount: 1 });
           } catch (e) {
             done.fail(e);
           }
@@ -863,7 +891,7 @@ describe('sample usage', () => {
         }
         if (count === 3) {
           try {
-            expect({ ...data }).toEqual({ count: 1, lastCount: 1 });
+            expect({ ...data }).toMatchObject({ count: 1, lastCount: 1 });
           } catch (e) {
             done.fail(e);
           }
@@ -919,7 +947,7 @@ describe('sample usage', () => {
       next: ({ data }) => {
         count++;
         if (count === 1) {
-          expect({ ...data }).toEqual({ todos: [] });
+          expect({ ...data }).toMatchObject({ todos: [] });
           client.mutate({
             mutation,
             variables: {
@@ -928,7 +956,7 @@ describe('sample usage', () => {
             },
           });
         } else if (count === 2) {
-          expect(data.todos.map(x => ({ ...x }))).toEqual([
+          expect(data.todos.map(x => ({ ...x }))).toMatchObject([
             {
               title: 'Apollo Client 2.0',
               message: 'ship it',
