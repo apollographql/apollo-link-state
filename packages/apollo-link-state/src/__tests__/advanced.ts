@@ -205,7 +205,7 @@ describe('combination of server and client queries', () => {
 
     client.watchQuery({ query }).subscribe({
       next: ({ data }) => {
-        expect({ ...data }).toEqual({ count: 0, lastCount: 1 });
+        expect({ ...data }).toMatchObject({ count: 0, lastCount: 1 });
         done();
       },
     });
@@ -247,7 +247,7 @@ describe('combination of server and client queries', () => {
     client.watchQuery({ query }).subscribe({
       next: ({ data }) => {
         try {
-          expect({ ...data.user }).toEqual({
+          expect({ ...data.user }).toMatchObject({
             firstName: 'John',
             lastName: 'Doe',
             __typename: 'User',
@@ -332,7 +332,7 @@ describe('combination of server and client queries', () => {
       next: ({ data }) => {
         if (watchCount === 0) {
           expect(data.count).toEqual(0);
-          expect({ ...data.user }).toEqual({
+          expect({ ...data.user }).toMatchObject({
             __typename: 'User',
             firstName: 'John',
           });
@@ -350,7 +350,7 @@ describe('combination of server and client queries', () => {
           });
         } else {
           expect(data.count).toEqual(1);
-          expect({ ...data.user }).toEqual({
+          expect({ ...data.user }).toMatchObject({
             __typename: 'User',
             firstName: 'Harry',
           });
