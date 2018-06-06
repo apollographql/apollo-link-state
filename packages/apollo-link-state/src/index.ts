@@ -24,7 +24,7 @@ export type ClientStateConfig = {
 export const withClientState = (
   clientStateConfig: ClientStateConfig = { resolvers: {}, defaults: {} },
 ) => {
-  const { resolvers, defaults, cache, typeDefs } = clientStateConfig;
+  const { defaults, cache, typeDefs } = clientStateConfig;
   if (cache && defaults) {
     cache.writeData({ data: defaults });
   }
@@ -64,6 +64,10 @@ export const withClientState = (
         ) || 'Query';
 
       const resolver = (fieldName, rootValue = {}, args, context, info) => {
+        const resolvers =
+          typeof clientStateConfig.resolvers === 'function'
+            ? clientStateConfig.resolvers()
+            : clientStateConfig.resolvers;
         //resultKey is where data under the field name is ultimately returned by the server
         //https://github.com/apollographql/apollo-client/tree/master/packages/graphql-anywhere#resolver-info
         const fieldValue = rootValue[info.resultKey];

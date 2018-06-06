@@ -42,6 +42,25 @@ describe('initialization', () => {
     expect(cache.extract()).toMatchSnapshot();
   });
 
+  it('accepts a factory of resolvers', (done: jest.DoneCallback) => {
+    const fooResolver = jest.fn(() => ({ bar: true, __typename: 'Bar' }));
+    const resolvers = { Query: { foo: fooResolver } };
+    const cache = new InMemoryCache();
+    const client = new ApolloClient({
+      cache,
+      link: withClientState({ cache, defaults, resolvers: () => resolvers }),
+    });
+
+    client
+      .query({ query, fetchPolicy: 'network-only' })
+      .then(({ data }) => {
+        expect(fooResolver).toHaveBeenCalled();
+        expect(data.foo.bar).toEqual(true);
+        done();
+      })
+      .catch(done.fail);
+  });
+
   it(`doesn't call the resolver if the data is already in the cache`, () => {
     const fooResolver = jest.fn();
     const resolvers = { Query: { foo: fooResolver } };
