@@ -1,7 +1,10 @@
 import gql from 'graphql-tag';
 import { ApolloLink, execute, Observable } from 'apollo-link';
 import { ApolloClient } from 'apollo-client';
-import { InMemoryCache } from 'apollo-cache-inmemory';
+import {
+  InMemoryCache,
+  IntrospectionFragmentMatcher,
+} from 'apollo-cache-inmemory';
 
 import { print } from 'graphql/language/printer';
 import { parse } from 'graphql/language/parser';
@@ -186,6 +189,61 @@ describe('non cache usage', () => {
       }
     });
   });
+  it('uses fragment matcher', () => {
+    const query = gql`
+      {
+        foo {
+          ... on Bar {
+            bar @client
+          }
+          ... on Baz {
+            baz @client
+          }
+        }
+      }
+    `;
+
+    const link = new ApolloLink(() =>
+      Observable.of({
+        data: { foo: [{ __typename: 'Bar' }, { __typename: 'Baz' }] },
+      }),
+    );
+    const local = withClientState({
+      resolvers: {
+        Bar: {
+          bar: () => 'Bar',
+        },
+        Baz: {
+          baz: () => 'Baz',
+        },
+      },
+      fragmentMatcher: ({ __typename }, typeCondition) =>
+        __typename === typeCondition,
+    });
+
+    const client = new ApolloClient({
+      cache: new InMemoryCache({
+        fragmentMatcher: new IntrospectionFragmentMatcher({
+          introspectionQueryResultData: {
+            __schema: {
+              types: [
+                {
+                  kind: 'UnionTypeDefinition',
+                  name: 'Foo',
+                  possibleTypes: [{ name: 'Bar' }, { name: 'Baz' }],
+                },
+              ],
+            },
+          },
+        }),
+      }),
+      link: local.concat(link),
+    });
+
+    return client.query({ query }).then(({ data }) => {
+      expect(data).toMatchObject({ foo: [{ bar: 'Bar' }, { baz: 'Baz' }] });
+    });
+  });
 });
 
 describe('cache usage', () => {
@@ -337,38 +395,6 @@ describe('cache usage', () => {
       .then(({ data }) => {
         expect({ ...data }).toMatchObject({ field: '1234' });
       });
-  });
-
-  it('runs default resolvers for aliased fields tagged with @client', () => {
-    const query = gql`
-      {
-        fie: foo @client {
-          bar
-        }
-      }
-    `;
-
-    const cache = new InMemoryCache();
-
-    const client = new ApolloClient({
-      cache,
-      link: withClientState({
-        cache,
-        resolvers: {},
-        defaults: {
-          foo: {
-            bar: 'yo',
-            __typename: 'Foo',
-          },
-        },
-      }),
-    });
-
-    return client.query({ query }).then(({ data }) => {
-      expect({ ...data }).toMatchObject({
-        fie: { bar: 'yo', __typename: 'Foo' },
-      });
-    });
   });
 
   it('writeDefaults lets you write defaults to the cache after the store is reset', done => {
@@ -749,7 +775,7 @@ describe('cache usage', () => {
         complete: done.fail,
       });
 
-      client.resetStore() as Promise<null>;
+      client.resetStore();
     });
   });
 });

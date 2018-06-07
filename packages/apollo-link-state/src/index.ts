@@ -8,8 +8,12 @@ import {
 import { ApolloCache } from 'apollo-cache';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
+
 import * as Async from 'graphql-anywhere/lib/async';
 const { graphql } = Async;
+
+import { FragmentMatcher } from 'graphql-anywhere';
+
 import { removeClientSetsFromDocument } from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
@@ -19,12 +23,19 @@ export type ClientStateConfig = {
   resolvers: any;
   defaults?: any;
   typeDefs?: string | string[];
+  fragmentMatcher?: FragmentMatcher;
 };
 
 export const withClientState = (
   clientStateConfig: ClientStateConfig = { resolvers: {}, defaults: {} },
 ) => {
-  const { resolvers, defaults, cache, typeDefs } = clientStateConfig;
+  const {
+    resolvers,
+    defaults,
+    cache,
+    typeDefs,
+    fragmentMatcher,
+  } = clientStateConfig;
   if (cache && defaults) {
     cache.writeData({ data: defaults });
   }
@@ -64,12 +75,24 @@ export const withClientState = (
         ) || 'Query';
 
       const resolver = (fieldName, rootValue = {}, args, context, info) => {
-        //resultKey is where data under the field name is ultimately returned by the server
-        //https://github.com/apollographql/apollo-client/tree/master/packages/graphql-anywhere#resolver-info
-        const fieldValue = rootValue[info.resultKey];
+        const { resultKey } = info;
 
-        //If fieldValue is defined, server returned a value
-        if (fieldValue !== undefined) return fieldValue;
+        // rootValue[fieldName] is where the data is stored in the "canonical model"
+        // rootValue[info.resultKey] is where the user wants the data to be.
+        // If fieldName != info.resultKey -- then GraphQL Aliases are in play
+        // See also:
+        // - https://github.com/apollographql/apollo-client/tree/master/packages/graphql-anywhere#resolver-info
+        // - https://github.com/apollographql/apollo-link-rest/pull/113
+
+        // Support GraphQL Aliases!
+        const aliasedNode = rootValue[resultKey];
+        const preAliasingNode = rootValue[fieldName];
+        const aliasNeeded = resultKey !== fieldName;
+
+        // If aliasedValue is defined, some other link or server already returned a value
+        if (aliasedNode !== undefined || preAliasingNode !== undefined) {
+          return aliasedNode || preAliasingNode;
+        }
 
         // Look for the field in the custom resolver map
         const resolverMap = resolvers[(rootValue as any).__typename || type];
@@ -77,11 +100,16 @@ export const withClientState = (
           const resolve = resolverMap[fieldName];
           if (resolve) return resolve(rootValue, args, context, info);
         }
-        //TODO: the proper thing to do here is throw an error saying to
-        //add `client.onResetStore(link.writeDefaults);`
-        //waiting on https://github.com/apollographql/apollo-client/pull/3010
-        //Currently with nested fields, this sort of return does not work
-        return defaults[fieldName];
+
+        // TODO: the proper thing to do here is throw an error saying to
+        // add `client.onResetStore(link.writeDefaults);`
+        // waiting on https://github.com/apollographql/apollo-client/pull/3010
+
+        return (
+          // Support nested fields
+          (aliasNeeded ? aliasedNode : preAliasingNode) ||
+          (defaults || {})[fieldName]
+        );
       };
 
       if (server) operation.query = server;
@@ -99,7 +127,9 @@ export const withClientState = (
             const context = operation.getContext();
             //data is from the server and provides the root value to this GraphQL resolution
             //when there is no resolver, the data is taken from the context
-            graphql(resolver, query, data, context, operation.variables)
+            graphql(resolver, query, data, context, operation.variables, {
+              fragmentMatcher,
+            })
               .then(nextData => {
                 observer.next({
                   data: nextData,

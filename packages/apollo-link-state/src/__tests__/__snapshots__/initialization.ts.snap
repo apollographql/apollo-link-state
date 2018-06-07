@@ -53,7 +53,6 @@ Object {
       "generated": true,
       "id": "$ROOT_QUERY.foo",
       "type": "id",
-      "typename": "Bar",
     },
   },
 }
