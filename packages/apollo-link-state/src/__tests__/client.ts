@@ -339,38 +339,6 @@ describe('cache usage', () => {
       });
   });
 
-  it('runs default resolvers for aliased fields tagged with @client', () => {
-    const query = gql`
-      {
-        fie: foo @client {
-          bar
-        }
-      }
-    `;
-
-    const cache = new InMemoryCache();
-
-    const client = new ApolloClient({
-      cache,
-      link: withClientState({
-        cache,
-        resolvers: {},
-        defaults: {
-          foo: {
-            bar: 'yo',
-            __typename: 'Foo',
-          },
-        },
-      }),
-    });
-
-    return client.query({ query }).then(({ data }) => {
-      expect({ ...data }).toMatchObject({
-        fie: { bar: 'yo', __typename: 'Foo' },
-      });
-    });
-  });
-
   it('writeDefaults lets you write defaults to the cache after the store is reset', done => {
     const mutation = gql`
       mutation foo {
@@ -749,7 +717,7 @@ describe('cache usage', () => {
         complete: done.fail,
       });
 
-      client.resetStore() as Promise<null>;
+      client.resetStore();
     });
   });
 });
