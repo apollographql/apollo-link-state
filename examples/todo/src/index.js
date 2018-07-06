@@ -7,26 +7,9 @@ import { ApolloProvider } from 'react-apollo';
 
 import App from './components/App';
 import { resolvers, defaults } from './resolvers';
+import typeDefs from './schema';
 
 const cache = new InMemoryCache();
-
-const typeDefs = `
-  type Todo {
-    id: Int!
-    text: String!
-    completed: Boolean!
-  }
-
-  type Mutation {
-    addTodo(text: String!): Todo
-    toggleTodo(id: Int!): Todo
-  }
-
-  type Query {
-    visibilityFilter: String
-    todos: [Todo]
-  }
-`;
 
 const client = new ApolloClient({
   cache,

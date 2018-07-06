@@ -5,7 +5,7 @@ import gql from 'graphql-tag';
 import Todo from './Todo';
 
 const GET_TODOS = gql`
-  {
+  query GetTodos {
     todos @client {
       id
       completed
