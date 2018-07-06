@@ -11,7 +11,7 @@ export const resolvers = {
   Mutation: {
     addTodo: (_, { text }, { cache }) => {
       const query = gql`
-        query GetTodos {
+        query Todos {
           todos @client {
             id
             text
@@ -24,7 +24,7 @@ export const resolvers = {
         id: nextTodoId++,
         text,
         completed: false,
-        __typename: 'TodoItem',
+        __typename: 'Todo',
       };
       const data = {
         todos: previous.todos.concat([newTodo]),
@@ -33,16 +33,16 @@ export const resolvers = {
       return newTodo;
     },
     toggleTodo: (_, variables, { cache }) => {
-      const id = `TodoItem:${variables.id}`;
+      const id = `Todo:${variables.id}`;
       const fragment = gql`
-        fragment completeTodo on TodoItem {
+        fragment completeTodo on Todo {
           completed
         }
       `;
       const todo = cache.readFragment({ fragment, id });
       const data = { ...todo, completed: !todo.completed };
       cache.writeData({ id, data });
-      return null;
+      return true;
     },
   },
 };

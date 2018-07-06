@@ -5,7 +5,7 @@ import gql from 'graphql-tag';
 import Link from './Link';
 
 const GET_VISIBILITY_FILTER = gql`
-  {
+  query GetVisibilityFilter {
     visibilityFilter @client
   }
 `;
