@@ -20,18 +20,16 @@ const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
 export type ClientStateConfig = {
   cache?: ApolloCache<any>;
-  resolvers: any;
+  resolvers?: any;
   defaults?: any;
   typeDefs?: string | string[];
   fragmentMatcher?: FragmentMatcher;
 };
 
-export const withClientState = (
-  clientStateConfig: ClientStateConfig = { resolvers: {}, defaults: {} },
-) => {
+export const withClientState = (clientStateConfig: ClientStateConfig = {}) => {
   const {
-    resolvers,
-    defaults,
+    resolvers = {},
+    defaults = {},
     cache,
     typeDefs,
     fragmentMatcher,
