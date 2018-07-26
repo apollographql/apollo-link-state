@@ -260,6 +260,66 @@ describe('combination of server and client queries', () => {
     });
   });
 
+  it('should remove variables used only for client fields', done => {
+    const query = gql`
+      query GetUser($upper: Boolean, $lower: Boolean) {
+        user {
+          email(lower: $lower) @client
+          firstName(upper: $upper) @client
+          lastName(upper: $upper)
+        }
+      }
+    `;
+    const cache = new InMemoryCache();
+
+    const local = withClientState({
+      cache,
+      defaults: {
+        user: {
+          __typename: 'User',
+          email: 'john@doe.com',
+          firstName: 'JOHN',
+        },
+      },
+      resolvers: {},
+    });
+
+    const http = new ApolloLink(operation => {
+      expect(operation.query.definitions[0].variableDefinitions).toHaveLength(
+        1,
+      );
+      expect(operation.variables).toMatchObject({
+        upper: true,
+      });
+      expect(operation.operationName).toBe('GetUser');
+      return Observable.of({
+        data: { user: { lastName: 'DOE', __typename: 'User' } },
+      });
+    });
+
+    const client = new ApolloClient({
+      cache,
+      link: local.concat(http),
+    });
+    client
+      .watchQuery({ query, variables: { upper: true, lower: true } })
+      .subscribe({
+        next: ({ data }) => {
+          try {
+            expect({ ...data.user }).toMatchObject({
+              email: 'john@doe.com',
+              firstName: 'JOHN',
+              lastName: 'Doe',
+              __typename: 'User',
+            });
+          } catch (e) {
+            done.fail(e);
+          }
+          done();
+        },
+      });
+  });
+
   it('combine both server and client mutations', done => {
     const query = gql`
       query SampleQuery {
