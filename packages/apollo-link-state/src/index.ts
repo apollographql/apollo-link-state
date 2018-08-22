@@ -6,6 +6,7 @@ import {
   FetchResult,
 } from 'apollo-link';
 import { ApolloCache } from 'apollo-cache';
+import { DocumentNode } from 'graphql';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
 
@@ -14,7 +15,7 @@ const { graphql } = Async;
 
 import { FragmentMatcher } from 'graphql-anywhere';
 
-import { removeClientSetsFromDocument } from './utils';
+import { removeClientSetsFromDocument, normalizeTypeDefs } from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -22,7 +23,7 @@ export type ClientStateConfig = {
   cache?: ApolloCache<any>;
   resolvers: any;
   defaults?: any;
-  typeDefs?: string | string[];
+  typeDefs?: string | string[] | DocumentNode | DocumentNode[];
   fragmentMatcher?: FragmentMatcher;
 };
 
@@ -53,10 +54,8 @@ export const withClientState = (
     ): Observable<FetchResult> {
       if (typeDefs) {
         const directives = 'directive @client on FIELD';
-        const definition =
-          typeof typeDefs === 'string'
-            ? typeDefs
-            : typeDefs.map(typeDef => typeDef.trim()).join('\n');
+
+        const definition = normalizeTypeDefs(typeDefs);
 
         operation.setContext(({ schemas = [] }) => ({
           schemas: schemas.concat([{ definition, directives }]),
