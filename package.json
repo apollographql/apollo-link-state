@@ -50,7 +50,7 @@
     "*.json*": ["prettier --write", "git add"]
   },
   "pre-commit": "lint-staged",
-  "dependencies": {
+  "peerDependencies": {
     "@types/zen-observable": "0.5.3"
   },
   "devDependencies": {
