@@ -119,11 +119,18 @@ export const withClientState = (
               data: {},
             });
 
-      return obs.flatMap(
-        ({ data, errors }) =>
-          new Observable(observer => {
+      return new Observable(observer => {
+        // Works around race condition between completion and graphql execution
+        // finishing. If complete is called during the graphql call, we will
+        // miss out on the result, since the observer will have completed
+        let complete = false;
+        let handlingNext = false;
+        obs.subscribe({
+          next: ({ data, errors }) => {
             const observerErrorHandler = observer.error.bind(observer);
             const context = operation.getContext();
+
+            handlingNext = true;
             //data is from the server and provides the root value to this GraphQL resolution
             //when there is no resolver, the data is taken from the context
             graphql(resolver, query, data, context, operation.variables, {
@@ -134,11 +141,22 @@ export const withClientState = (
                   data: nextData,
                   errors,
                 });
-                observer.complete();
+                if (complete) {
+                  observer.complete();
+                }
+                handlingNext = false;
               })
               .catch(observerErrorHandler);
-          }),
-      );
+          },
+          error: observer.error.bind(observer),
+          complete: () => {
+            if (!handlingNext) {
+              observer.complete();
+            }
+            complete = true;
+          },
+        });
+      });
     }
   }();
 };
