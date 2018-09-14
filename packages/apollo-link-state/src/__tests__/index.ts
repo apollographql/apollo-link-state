@@ -2,7 +2,6 @@ import gql from 'graphql-tag';
 import { ApolloLink, execute, Observable } from 'apollo-link';
 
 import { print } from 'graphql/language/printer';
-import { parse } from 'graphql/language/parser';
 
 import { withClientState } from '../';
 
@@ -11,17 +10,6 @@ const query = gql`
   query Test {
     foo @client {
       bar
-    }
-  }
-`;
-
-const doubleQuery = gql`
-  query Double {
-    foo @client {
-      bar
-    }
-    bar @client {
-      foo
     }
   }
 `;
@@ -36,15 +24,6 @@ const mixedQuery = gql`
     }
   }
 `;
-
-const data = {
-  foo: { bar: true },
-};
-
-const doubleData = {
-  foo: { bar: true },
-  bar: { foo: false },
-};
 
 const resolvers = {
   Query: {
@@ -221,5 +200,43 @@ it('passes context to client resolvers', done => {
       done.fail(error);
     }
     done();
+  }, done.fail);
+});
+
+it('calls resolvers on each request if the prop is a function', done => {
+  const query = gql`
+    query WithContext {
+      foo @client {
+        bar
+      }
+    }
+  `;
+  const resolversSpy = jest.fn();
+  const resolvers = () => {
+    resolversSpy();
+    return {
+      Query: {
+        foo: () => ({ __typename: 'Foo' }),
+      },
+      Foo: {
+        bar: () => 1,
+      },
+    };
+  };
+
+  const client = withClientState({
+    resolvers,
+  });
+
+  // once
+  execute(client, { query }).subscribe(({ data }) => {
+    expect(data).toEqual({ foo: { bar: 1 } });
+
+    // twice
+    execute(client, { query }).subscribe(({ data }) => {
+      expect(data).toEqual({ foo: { bar: 1 } });
+      expect(resolversSpy).toHaveBeenCalledTimes(2);
+      done();
+    }, done.fail);
   }, done.fail);
 });

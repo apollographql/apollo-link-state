@@ -21,7 +21,7 @@ const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
 export type ClientStateConfig = {
   cache?: ApolloCache<any>;
-  resolvers: any;
+  resolvers: any | (() => any);
   defaults?: any;
   typeDefs?: string | string[] | DocumentNode | DocumentNode[];
   fragmentMatcher?: FragmentMatcher;
@@ -30,13 +30,7 @@ export type ClientStateConfig = {
 export const withClientState = (
   clientStateConfig: ClientStateConfig = { resolvers: {}, defaults: {} },
 ) => {
-  const {
-    resolvers,
-    defaults,
-    cache,
-    typeDefs,
-    fragmentMatcher,
-  } = clientStateConfig;
+  const { defaults, cache, typeDefs, fragmentMatcher } = clientStateConfig;
   if (cache && defaults) {
     cache.writeData({ data: defaults });
   }
@@ -66,6 +60,10 @@ export const withClientState = (
 
       if (!isClient) return forward(operation);
 
+      const resolvers =
+        typeof clientStateConfig.resolvers === 'function'
+          ? clientStateConfig.resolvers()
+          : clientStateConfig.resolvers;
       const server = removeClientSetsFromDocument(operation.query);
       const { query } = operation;
       const type =

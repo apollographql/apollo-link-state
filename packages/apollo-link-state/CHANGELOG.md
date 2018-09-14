@@ -1,7 +1,7 @@
 # Change log
 
-### vNext
-
+### vNEXT
+- Allow providing resolvers via function [#293](https://github.com/apollographql/apollo-link-state/pull/293)
 - Add support for DocumentNode input to `typeDefs` [#284](https://github.com/apollographql/apollo-link-state/pull/284)
 
 ### 0.4.1
