@@ -5,16 +5,14 @@ exports[
 ] = `
 Array [
   Object {
-    "definition": "
-    type Todo {
+    "definition": "type Todo {
       id: String
       message: String!
     }
 
     type Query {
       todo(id: String!): Todo
-    }
-  ",
+    }",
     "directives": "directive @client on FIELD",
   },
 ]
@@ -53,7 +51,6 @@ Object {
       "generated": true,
       "id": "$ROOT_QUERY.foo",
       "type": "id",
-      "typename": "Bar",
     },
   },
 }

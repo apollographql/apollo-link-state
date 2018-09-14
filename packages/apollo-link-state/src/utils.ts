@@ -1,9 +1,8 @@
-import { DocumentNode, DirectiveNode } from 'graphql';
+// importing print is a reasonable thing to do, since Apollo Link Http requires
+// it to be present
+import { DocumentNode, DirectiveNode, print } from 'graphql';
 
-import {
-  checkDocument,
-  removeDirectivesFromDocument,
-} from 'apollo-utilities';
+import { checkDocument, removeDirectivesFromDocument } from 'apollo-utilities';
 
 const connectionRemoveConfig = {
   test: (directive: DirectiveNode) => directive.name.value === 'client',
@@ -28,4 +27,15 @@ export function removeClientSetsFromDocument(
   // caching
   removed.set(query, docClone);
   return docClone;
+}
+
+export function normalizeTypeDefs(
+  typeDefs: string | string[] | DocumentNode | DocumentNode[],
+) {
+  const defs = Array.isArray(typeDefs) ? typeDefs : [typeDefs];
+
+  return defs
+    .map(typeDef => (typeof typeDef === 'string' ? typeDef : print(typeDef)))
+    .map(str => str.trim())
+    .join('\n');
 }
