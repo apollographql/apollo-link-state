@@ -39,23 +39,31 @@ it('strips out the client directive and does not call other links if no more fie
   const client = withClientState({ resolvers });
 
   execute(client.concat(nextLink), { query }).subscribe(result => {
-    expect(result.data).toEqual({ foo: { bar: true } });
+    try {
+      expect(result.data).toEqual({ foo: { bar: true } });
+    } catch (error) {
+      done.fail(error);
+    }
     done();
   }, done.fail);
 });
 
 it('passes a query on to the next link', done => {
   const nextLink = new ApolloLink(operation => {
-    expect(operation.getContext()).toMatchSnapshot();
-    expect(print(operation.query)).toEqual(
-      print(gql`
-        query Mixed {
-          bar {
-            foo
+    try {
+      expect(operation.getContext()).toMatchSnapshot();
+      expect(print(operation.query)).toEqual(
+        print(gql`
+          query Mixed {
+            bar {
+              foo
+            }
           }
-        }
-      `),
-    );
+        `),
+      );
+    } catch (error) {
+      done.fail(error);
+    }
     return Observable.of({ data: { bar: { foo: true } } });
   });
 
@@ -76,7 +84,11 @@ it('runs resolvers for client queries', done => {
     },
   });
   execute(client, { query }).subscribe(({ data }) => {
-    expect(data).toEqual({ foo: { bar: true } });
+    try {
+      expect(data).toEqual({ foo: { bar: true } });
+    } catch (error) {
+      done.fail(error);
+    }
     done();
   }, done.fail);
 });
@@ -97,7 +109,11 @@ it('runs resolvers for missing client queries with server data', done => {
   );
   const client = withClientState({ resolvers });
   execute(client.concat(sample), { query }).subscribe(({ data }) => {
-    expect(data).toEqual({ foo: { bar: true }, bar: { baz: true } });
+    try {
+      expect(data).toEqual({ foo: { bar: true }, bar: { baz: true } });
+    } catch (error) {
+      done.fail(error);
+    }
     done();
   }, done.fail);
 });
@@ -150,7 +166,11 @@ it('runs resolvers for missing client queries with variables', done => {
     },
   });
   execute(client, { query, variables: { id: 1 } }).subscribe(({ data }) => {
-    expect(data).toEqual({ foo: { bar: 1 } });
+    try {
+      expect(data).toEqual({ foo: { bar: 1 } });
+    } catch (error) {
+      done.fail(error);
+    }
     done();
   }, done.fail);
 });
@@ -174,7 +194,11 @@ it('passes context to client resolvers', done => {
     },
   });
   execute(client, { query, context: { id: 1 } }).subscribe(({ data }) => {
-    expect(data).toEqual({ foo: { bar: 1 } });
+    try {
+      expect(data).toEqual({ foo: { bar: 1 } });
+    } catch (error) {
+      done.fail(error);
+    }
     done();
   }, done.fail);
 });
