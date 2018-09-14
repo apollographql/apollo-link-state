@@ -1,8 +1,11 @@
 # Change log
 
 ### vNEXT
+
+### 0.4.2
 - Allow providing resolvers via function [#293](https://github.com/apollographql/apollo-link-state/pull/293)
 - Add support for DocumentNode input to `typeDefs` [#284](https://github.com/apollographql/apollo-link-state/pull/284)
+- Remove dependency on zen-observable's flatMap [#284](https://github.com/apollographql/apollo-link-state/pull/284)
 
 ### 0.4.1
 - Return defaults when no Queries resolver is found and check for `resolverMap` [#202](https://github.com/apollographql/apollo-link-state/pull/202)
