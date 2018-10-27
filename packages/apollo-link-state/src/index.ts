@@ -10,8 +10,7 @@ import { DocumentNode } from 'graphql';
 
 import { hasDirectives, getMainDefinition } from 'apollo-utilities';
 
-import * as Async from 'graphql-anywhere/lib/async';
-const { graphql } = Async;
+import graphqlSync from 'graphql-anywhere';
 
 import { FragmentMatcher } from 'graphql-anywhere';
 
@@ -131,9 +130,11 @@ export const withClientState = (
             handlingNext = true;
             //data is from the server and provides the root value to this GraphQL resolution
             //when there is no resolver, the data is taken from the context
-            graphql(resolver, query, data, context, operation.variables, {
-              fragmentMatcher,
-            })
+            Promise.resolve(() =>
+              graphqlSync(resolver, query, data, context, operation.variables, {
+                fragmentMatcher,
+              }),
+            )
               .then(nextData => {
                 observer.next({
                   data: nextData,
