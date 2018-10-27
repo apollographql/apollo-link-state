@@ -1,6 +1,0 @@
-{
-  "lerna": "2.1.2",
-  "packages": ["packages/*", "examples/*"],
-  "version": "independent",
-  "hoist": false
-}
