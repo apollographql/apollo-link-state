@@ -87,8 +87,11 @@ export const withClientState = (
         const aliasNeeded = resultKey !== fieldName;
 
         // If aliasedValue is defined, some other link or server already returned a value
-        if (aliasedNode !== undefined || preAliasingNode !== undefined) {
-          return aliasedNode || preAliasingNode;
+        if (aliasedNode !== undefined) {
+          return aliasedNode
+        }
+        if (preAliasingNode !== undefined) {
+          return preAliasingNode
         }
 
         // Look for the field in the custom resolver map
