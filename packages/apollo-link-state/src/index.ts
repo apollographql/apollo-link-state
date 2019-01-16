@@ -19,9 +19,29 @@ import { removeClientSetsFromDocument, normalizeTypeDefs } from './utils';
 
 const capitalizeFirstLetter = str => str.charAt(0).toUpperCase() + str.slice(1);
 
+export type ResolverContext = {
+  cache: ApolloCache<any>;
+};
+
+export type ResolveFunction<TA = any> = (
+  rootValue?: any,
+  args?: TA,
+  context?: ResolverContext,
+  info?: any,
+) => any;
+
+export type ResolverMap = {
+  [name: string]: ResolveFunction;
+};
+
+export type Resolvers = {
+  Query?: ResolverMap;
+  Mutation?: ResolverMap;
+};
+
 export type ClientStateConfig = {
   cache?: ApolloCache<any>;
-  resolvers: any | (() => any);
+  resolvers: Resolvers | (() => Resolvers);
   defaults?: any;
   typeDefs?: string | string[] | DocumentNode | DocumentNode[];
   fragmentMatcher?: FragmentMatcher;
