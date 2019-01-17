@@ -1,5 +1,10 @@
 # [apollo-link-state](https://www.apollographql.com/docs/link/links/state.html)
 
+> ⚠️ **WARNING** ⚠️
+> 
+> Apollo Client 2.5 is going to be released very shortly, and will include integrated local state handling capabilities. The functionality offered by `apollo-link-state` will be included in the Apollo Client core, which means this project/repository will be deprecated. For those interested in trying out the new integrated local state features of AC, see [apollographql/apollo-client#4155](https://github.com/apollographql/apollo-client/pull/4155) (the changes are currently available via `apollo-client@alpha` and `react-apollo@alpha`). We're still in alpha, but will be cutting over to beta soon (so if you have any feedback, please add your comments in [apollographql/apollo-client#4155](https://github.com/apollographql/apollo-client/pull/4155)). Thanks!
+
+
 ### Manage your local data with Apollo Client!
 
 [**Docs**](https://www.apollographql.com/docs/link/links/state.html) | [**Announcement Post**](https://dev-blog.apollodata.com/the-future-of-state-management-dd410864cae2) | [**Tutorial Video by Sara Vieira**](https://youtu.be/2RvRcnD8wHY)
