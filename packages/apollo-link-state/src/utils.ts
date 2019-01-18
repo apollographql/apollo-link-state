@@ -1,6 +1,7 @@
 // importing print is a reasonable thing to do, since Apollo Link Http requires
 // it to be present
-import { DocumentNode, DirectiveNode, print } from 'graphql';
+import { DocumentNode, DirectiveNode } from 'graphql';
+import { print } from 'graphql/language/printer';
 
 import { checkDocument, removeDirectivesFromDocument } from 'apollo-utilities';
 
